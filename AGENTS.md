@@ -48,6 +48,21 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 ## Safety
 
 - Don't exfiltrate private data. Ever.
+
+## 🔒 Auto-Backup (重要！)
+
+**修改重要文件前，必须先 git commit 备份！**
+
+重要文件：`AGENTS.md`, `SOUL.md`, `USER.md`, `TOOLS.md`, `IDENTITY.md`, `memory/*.md`, `skills/**`
+
+```powershell
+cd C:\Users\Administrator\.openclaw\workspace
+git add -A
+git commit -m "backup-before-edit"
+```
+
+如果改坏了，告诉我"恢复"或"回滚"，我会用 git 帮你恢复。
+详细命令见 `skills/auto-backup/SKILL.md`
 - Don't run destructive commands without asking.
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.

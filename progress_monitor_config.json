@@ -1,0 +1,36 @@
+{
+  "monitor_interval_minutes": 3,
+  "enabled": true,
+  "tasks": {
+    "Docker Desktop": {
+      "process_name": "Docker Desktop",
+      "check_command": null,
+      "last_report": null,
+      "running": false
+    },
+    "Docker Backend": {
+      "process_name": "com.docker.backend.exe",
+      "check_command": null,
+      "last_report": "2026-02-05 13:10:56",
+      "running": false
+    },
+    "WSL Ubuntu": {
+      "process_name": null,
+      "check_command": "wsl -l -v",
+      "last_report": null,
+      "running": false
+    },
+    "Sunlogin (向日葵)": {
+      "process_name": "SunloginClient.exe",
+      "check_command": null,
+      "last_report": null,
+      "running": false
+    },
+    "Docker CLI": {
+      "process_name": null,
+      "check_command": "docker ps",
+      "last_report": null,
+      "running": false
+    }
+  }
+}

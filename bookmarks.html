@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网址收藏夹</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 30px; font-weight: 300; }
+        
+        /* 添加表单 */
+        .add-form {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .add-form input {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            font-size: 14px;
+        }
+        .add-form input::placeholder { color: #888; }
+        .add-form button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .add-form button:hover { background: #45a049; }
+        
+        /* 搜索框 */
+        .search-box {
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            font-size: 14px;
+        }
+        .search-box input::placeholder { color: rgba(255,255,255,0.5); }
+        
+        /* 书签列表 */
+        .bookmarks { display: grid; gap: 15px; }
+        .bookmark {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .bookmark:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+        .bookmark-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .bookmark-icon img {
+            width: 24px;
+            height: 24px;
+        }
+        .bookmark-info { flex: 1; min-width: 0; }
+        .bookmark-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .bookmark-name a {
+            color: #fff;
+            text-decoration: none;
+        }
+        .bookmark-name a:hover { text-decoration: underline; }
+        .bookmark-url {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .bookmark-url a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+        }
+        .bookmark-url a:hover {
+            color: rgba(255,255,255,0.8);
+            text-decoration: underline;
+        }
+        .bookmark-note {
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 6px;
+        }
+        .bookmark-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .bookmark-actions button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .bookmark-actions button:hover { opacity: 0.8; }
+        .btn-edit { background: #2196F3; color: #fff; }
+        .btn-delete { background: #f44336; color: #fff; }
+        
+        /* 编辑模式 */
+        .bookmark.editing { background: rgba(33, 150, 243, 0.2); }
+        .bookmark.editing .edit-inputs { display: flex; }
+        .bookmark.editing .bookmark-info { display: none; }
+        .edit-inputs {
+            display: none;
+            flex: 1;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .edit-inputs input {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            font-size: 13px;
+        }
+        
+        /* 空状态 */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255,255,255,0.5);
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📑 网址收藏夹</h1>
+        
+        <div class="add-form">
+            <input type="text" id="inputUrl" placeholder="网址 (https://...)" />
+            <input type="text" id="inputName" placeholder="名称" />
+            <input type="text" id="inputNote" placeholder="备注 (可选)" />
+            <button onclick="addBookmark()">添加</button>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 搜索..." oninput="renderBookmarks()" />
+        </div>
+        
+        <div class="bookmarks" id="bookmarkList"></div>
+    </div>
+
+    <script>
+        // 数据存储
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        
+        function saveBookmarks() {
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        }
+        
+        function getFavicon(url) {
+            try {
+                const domain = new URL(url).hostname;
+                return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            } catch {
+                return '';
+            }
+        }
+        
+        function addBookmark() {
+            const url = document.getElementById('inputUrl').value.trim();
+            const name = document.getElementById('inputName').value.trim();
+            const note = document.getElementById('inputNote').value.trim();
+            
+            if (!url) { alert('请输入网址'); return; }
+            if (!name) { alert('请输入名称'); return; }
+            
+            // 自动补全 https://
+            let finalUrl = url;
+            if (!/^https?:\/\//i.test(url)) {
+                finalUrl = 'https://' + url;
+            }
+            
+            bookmarks.push({
+                id: Date.now(),
+                url: finalUrl,
+                name: name,
+                note: note,
+                createdAt: new Date().toISOString()
+            });
+            
+            saveBookmarks();
+            renderBookmarks();
+            
+            // 清空输入
+            document.getElementById('inputUrl').value = '';
+            document.getElementById('inputName').value = '';
+            document.getElementById('inputNote').value = '';
+        }
+        
+        function deleteBookmark(id) {
+            if (!confirm('确定删除？')) return;
+            bookmarks = bookmarks.filter(b => b.id !== id);
+            saveBookmarks();
+            renderBookmarks();
+        }
+        
+        function editBookmark(id) {
+            const el = document.querySelector(`[data-id="${id}"]`);
+            el.classList.add('editing');
+        }
+        
+        function saveEdit(id) {
+            const el = document.querySelector(`[data-id="${id}"]`);
+            const url = el.querySelector('.edit-url').value.trim();
+            const name = el.querySelector('.edit-name').value.trim();
+            const note = el.querySelector('.edit-note').value.trim();
+            
+            if (!url || !name) { alert('网址和名称不能为空'); return; }
+            
+            const bookmark = bookmarks.find(b => b.id === id);
+            if (bookmark) {
+                bookmark.url = url;
+                bookmark.name = name;
+                bookmark.note = note;
+                saveBookmarks();
+                renderBookmarks();
+            }
+        }
+        
+        function cancelEdit(id) {
+            renderBookmarks();
+        }
+        
+        function renderBookmarks() {
+            const container = document.getElementById('bookmarkList');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = bookmarks;
+            if (search) {
+                filtered = bookmarks.filter(b => 
+                    b.name.toLowerCase().includes(search) ||
+                    b.url.toLowerCase().includes(search) ||
+                    (b.note && b.note.toLowerCase().includes(search))
+                );
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">📭</div>
+                        <div>${search ? '没有找到匹配的网址' : '还没有收藏，添加一个吧'}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(b => `
+                <div class="bookmark" data-id="${b.id}">
+                    <div class="bookmark-icon">
+                        <img src="${getFavicon(b.url)}" onerror="this.style.display='none'" />
+                    </div>
+                    <div class="bookmark-info">
+                        <div class="bookmark-name">
+                            <a href="${b.url}" target="_blank">${escapeHtml(b.name)}</a>
+                        </div>
+                        <div class="bookmark-url"><a href="${b.url}" target="_blank">${escapeHtml(b.url)}</a></div>
+                        ${b.note ? `<div class="bookmark-note">${escapeHtml(b.note)}</div>` : ''}
+                    </div>
+                    <div class="edit-inputs">
+                        <input class="edit-url" value="${escapeHtml(b.url)}" placeholder="网址" />
+                        <input class="edit-name" value="${escapeHtml(b.name)}" placeholder="名称" />
+                        <input class="edit-note" value="${escapeHtml(b.note || '')}" placeholder="备注" />
+                        <button class="btn-edit" onclick="saveEdit(${b.id})">保存</button>
+                        <button class="btn-delete" onclick="cancelEdit(${b.id})">取消</button>
+                    </div>
+                    <div class="bookmark-actions">
+                        <button class="btn-edit" onclick="editBookmark(${b.id})">编辑</button>
+                        <button class="btn-delete" onclick="deleteBookmark(${b.id})">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 回车添加
+        document.getElementById('inputNote').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addBookmark();
+        });
+        
+        // 初始渲染
+        renderBookmarks();
+    </script>
+</body>
+</html>

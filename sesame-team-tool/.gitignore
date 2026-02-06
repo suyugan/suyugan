@@ -1,0 +1,34 @@
+# 依赖
+node_modules/
+dist/
+.nuxt/
+.cache/
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 数据
+backend/data/
+*.db
+*.db-journal
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/

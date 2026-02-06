@@ -1,0 +1,25 @@
+# 截图/临时图片
+*.png
+*.jpg
+*.jpeg
+
+# 日志
+*.log
+full_log.txt
+
+# 临时文件
+*.tmp
+*.bak
+
+# 视频分析输出
+video-analysis/
+video_analysis/
+
+# 敏感信息
+*_cookie.txt
+*_config.yaml
+
+# 项目特定（按需保留）
+# projects/
+# feishu-bridge/
+# sesame-team-tool/

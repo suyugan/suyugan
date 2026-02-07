@@ -1,0 +1,13 @@
+{
+  "name": "wechat-messages",
+  "version": "1.0.0",
+  "description": "微信消息监控系统",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "uuid": "^9.0.1"
+  }
+}

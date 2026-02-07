@@ -45,6 +45,15 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - When you make a mistake → document it so future-you doesn't repeat it
 - **Text > Brain** 📝
 
+## 任务处理规则
+
+**所有频道收到的任务都用 spawn 处理：**
+- 收到任务 → 立即 `sessions_spawn` 给子代理
+- 主会话回复「收到，处理中」然后继续响应其他消息
+- 子代理完成后自动汇报结果
+
+这样可以并行处理多个任务，不会阻塞主会话。
+
 ## Safety
 
 - Don't exfiltrate private data. Ever.

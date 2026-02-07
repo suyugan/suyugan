@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信群聊截图查看器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #111;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 左侧群列表 */
+        .sidebar {
+            width: 280px;
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #222;
+            border-bottom: 1px solid #333;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            color: #07c160;
+            margin-bottom: 15px;
+        }
+
+        .add-group-btn {
+            width: 100%;
+            padding: 10px;
+            background: #07c160;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .add-group-btn:hover {
+            background: #06ad56;
+        }
+
+        .group-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .group-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+        }
+
+        .group-item:hover {
+            background: #2a2a2a;
+        }
+
+        .group-item.active {
+            background: #07c160;
+        }
+
+        .group-avatar {
+            width: 45px;
+            height: 45px;
+            background: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .group-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .group-name {
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .group-count {
+            font-size: 12px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .group-actions {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .group-item:hover .group-actions {
+            opacity: 1;
+        }
+
+        .delete-group-btn {
+            background: none;
+            border: none;
+            color: #ff4d4f;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+        }
+
+        /* 右侧图片区域 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #111;
+            min-width: 0;
+        }
+
+        .content-header {
+            padding: 15px 20px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .content-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .upload-btn {
+            padding: 8px 20px;
+            background: #07c160;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .upload-btn:hover {
+            background: #06ad56;
+        }
+
+        .upload-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+
+        .storage-info {
+            font-size: 12px;
+            color: #888;
+            margin-left: 15px;
+        }
+
+        .storage-warning {
+            color: #faad14;
+        }
+
+        .storage-danger {
+            color: #ff4d4f;
+        }
+
+        /* 图片流 */
+        .image-flow {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-text {
+            font-size: 16px;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .image-card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .image-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .image-card img {
+            width: 100%;
+            display: block;
+        }
+
+        .image-meta {
+            padding: 10px 12px;
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-img-btn {
+            background: none;
+            border: none;
+            color: #ff4d4f;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .image-card:hover .delete-img-btn {
+            opacity: 1;
+        }
+
+        /* 图片预览 */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: #fff;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 50px;
+            color: #fff;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 20px;
+        }
+
+        .lightbox-prev {
+            left: 20px;
+        }
+
+        .lightbox-next {
+            right: 20px;
+        }
+
+        /* 弹窗 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #222;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #07c160;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .modal-btn-cancel {
+            background: #444;
+            color: #fff;
+        }
+
+        .modal-btn-confirm {
+            background: #07c160;
+            color: #fff;
+        }
+
+        /* 移动端菜单按钮 */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* 隐藏的文件输入 */
+        #fileInput {
+            display: none;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100%;
+                z-index: 100;
+                transition: left 0.3s;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: none;
+                z-index: 99;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .image-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
+
+            .content-header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .storage-info {
+                width: 100%;
+                margin-left: 0;
+                order: 3;
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 移动端遮罩 -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <!-- 左侧群列表 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>📱 群聊截图</h2>
+                <button class="add-group-btn" onclick="showAddGroupModal()">+ 新建群组</button>
+            </div>
+            <div class="group-list" id="groupList"></div>
+        </aside>
+
+        <!-- 右侧内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                <h3 class="content-title" id="contentTitle">选择一个群组</h3>
+                <button class="upload-btn" id="uploadBtn" onclick="triggerUpload()" disabled>📷 上传截图</button>
+                <span class="storage-info" id="storageInfo"></span>
+            </div>
+            <div class="image-flow" id="imageFlow">
+                <div class="empty-state">
+                    <div class="empty-icon">💬</div>
+                    <div class="empty-text">选择或创建一个群组开始</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 图片预览 -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1, event)">‹</button>
+        <img id="lightboxImg" src="" alt="预览">
+        <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1, event)">›</button>
+    </div>
+
+    <!-- 新建群组弹窗 -->
+    <div class="modal" id="addGroupModal">
+        <div class="modal-content">
+            <h3 class="modal-title">新建群组</h3>
+            <input type="text" class="modal-input" id="groupNameInput" placeholder="输入群组名称" maxlength="20">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal('addGroupModal')">取消</button>
+                <button class="modal-btn modal-btn-confirm" onclick="addGroup()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(event)">
+
+    <script>
+        // 数据结构
+        let appData = {
+            groups: [],
+            currentGroupId: null
+        };
+
+        // 初始化
+        function init() {
+            loadData();
+            renderGroups();
+            updateStorageInfo();
+        }
+
+        // 加载数据
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('wechat-viewer-data');
+                if (saved) {
+                    appData = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('加载数据失败:', e);
+            }
+        }
+
+        // 保存数据
+        function saveData() {
+            try {
+                localStorage.setItem('wechat-viewer-data', JSON.stringify(appData));
+                updateStorageInfo();
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    alert('⚠️ 存储空间已满！请删除一些图片后重试。\n\nlocalStorage 限制约 5MB');
+                } else {
+                    console.error('保存数据失败:', e);
+                }
+            }
+        }
+
+        // 更新存储信息
+        function updateStorageInfo() {
+            const used = new Blob([localStorage.getItem('wechat-viewer-data') || '']).size;
+            const usedMB = (used / 1024 / 1024).toFixed(2);
+            const percent = (used / (5 * 1024 * 1024) * 100).toFixed(1);
+            
+            const el = document.getElementById('storageInfo');
+            el.textContent = `已用: ${usedMB}MB (${percent}%)`;
+            el.className = 'storage-info';
+            
+            if (percent > 80) {
+                el.classList.add('storage-danger');
+            } else if (percent > 50) {
+                el.classList.add('storage-warning');
+            }
+        }
+
+        // 渲染群组列表
+        function renderGroups() {
+            const container = document.getElementById('groupList');
+            if (appData.groups.length === 0) {
+                container.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">暂无群组</div>';
+                return;
+            }
+
+            container.innerHTML = appData.groups.map(group => `
+                <div class="group-item ${group.id === appData.currentGroupId ? 'active' : ''}" 
+                     onclick="selectGroup('${group.id}')">
+                    <div class="group-avatar">${group.emoji || '👥'}</div>
+                    <div class="group-info">
+                        <div class="group-name">${escapeHtml(group.name)}</div>
+                        <div class="group-count">${group.images.length} 张截图</div>
+                    </div>
+                    <div class="group-actions">
+                        <button class="delete-group-btn" onclick="deleteGroup('${group.id}', event)">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 选择群组
+        function selectGroup(groupId) {
+            appData.currentGroupId = groupId;
+            renderGroups();
+            renderImages();
+            document.getElementById('uploadBtn').disabled = false;
+            
+            // 移动端关闭侧边栏
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        }
+
+        // 渲染图片
+        function renderImages() {
+            const group = appData.groups.find(g => g.id === appData.currentGroupId);
+            const container = document.getElementById('imageFlow');
+            const title = document.getElementById('contentTitle');
+
+            if (!group) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💬</div>
+                        <div class="empty-text">选择或创建一个群组开始</div>
+                    </div>
+                `;
+                title.textContent = '选择一个群组';
+                return;
+            }
+
+            title.textContent = group.name;
+
+            if (group.images.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📷</div>
+                        <div class="empty-text">点击上方按钮上传截图</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 按时间倒序排列
+            const sortedImages = [...group.images].sort((a, b) => b.timestamp - a.timestamp);
+
+            container.innerHTML = `
+                <div class="image-grid">
+                    ${sortedImages.map((img, idx) => `
+                        <div class="image-card" onclick="openLightbox(${idx})">
+                            <img src="${img.data}" alt="截图" loading="lazy">
+                            <div class="image-meta">
+                                <span>${formatTime(img.timestamp)}</span>
+                                <button class="delete-img-btn" onclick="deleteImage('${img.id}', event)">删除</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 显示新建群组弹窗
+        function showAddGroupModal() {
+            document.getElementById('addGroupModal').classList.add('active');
+            document.getElementById('groupNameInput').focus();
+        }
+
+        // 关闭弹窗
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.getElementById('groupNameInput').value = '';
+        }
+
+        // 添加群组
+        function addGroup() {
+            const name = document.getElementById('groupNameInput').value.trim();
+            if (!name) {
+                alert('请输入群组名称');
+                return;
+            }
+
+            const emojis = ['👥', '💬', '🏠', '💼', '🎮', '🎵', '📚', '🍔', '✈️', '🌸'];
+            const group = {
+                id: 'g_' + Date.now(),
+                name: name,
+                emoji: emojis[Math.floor(Math.random() * emojis.length)],
+                images: [],
+                createdAt: Date.now()
+            };
+
+            appData.groups.unshift(group);
+            saveData();
+            renderGroups();
+            closeModal('addGroupModal');
+            selectGroup(group.id);
+        }
+
+        // 删除群组
+        function deleteGroup(groupId, event) {
+            event.stopPropagation();
+            if (!confirm('确定要删除这个群组吗？所有截图都会被删除。')) return;
+
+            appData.groups = appData.groups.filter(g => g.id !== groupId);
+            if (appData.currentGroupId === groupId) {
+                appData.currentGroupId = null;
+                document.getElementById('uploadBtn').disabled = true;
+            }
+            saveData();
+            renderGroups();
+            renderImages();
+        }
+
+        // 触发文件上传
+        function triggerUpload() {
+            document.getElementById('fileInput').click();
+        }
+
+        // 处理文件上传
+        function handleFiles(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            const group = appData.groups.find(g => g.id === appData.currentGroupId);
+            if (!group) return;
+
+            let processed = 0;
+            const total = files.length;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // 压缩图片
+                    compressImage(e.target.result, (compressedData) => {
+                        group.images.push({
+                            id: 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                            data: compressedData,
+                            timestamp: Date.now(),
+                            name: file.name
+                        });
+
+                        processed++;
+                        if (processed === total) {
+                            try {
+                                saveData();
+                                renderGroups();
+                                renderImages();
+                            } catch (e) {
+                                alert('存储失败，可能空间不足');
+                            }
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+
+            event.target.value = '';
+        }
+
+        // 压缩图片
+        function compressImage(dataUrl, callback) {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // 限制最大尺寸
+                const maxWidth = 1200;
+                const maxHeight = 2400;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = (maxWidth / width) * height;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = (maxHeight / height) * width;
+                    height = maxHeight;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                callback(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.src = dataUrl;
+        }
+
+        // 删除图片
+        function deleteImage(imgId, event) {
+            event.stopPropagation();
+            if (!confirm('确定删除这张截图？')) return;
+
+            const group = appData.groups.find(g => g.id === appData.currentGroupId);
+            if (!group) return;
+
+            group.images = group.images.filter(img => img.id !== imgId);
+            saveData();
+            renderGroups();
+            renderImages();
+        }
+
+        // 图片预览
+        let currentLightboxIndex = 0;
+        let currentImages = [];
+
+        function openLightbox(index) {
+            const group = appData.groups.find(g => g.id === appData.currentGroupId);
+            if (!group) return;
+
+            currentImages = [...group.images].sort((a, b) => b.timestamp - a.timestamp);
+            currentLightboxIndex = index;
+            
+            document.getElementById('lightboxImg').src = currentImages[index].data;
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox(event) {
+            if (event && event.target !== event.currentTarget && !event.target.classList.contains('lightbox-close')) return;
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function navigateLightbox(direction, event) {
+            event.stopPropagation();
+            currentLightboxIndex += direction;
+            if (currentLightboxIndex < 0) currentLightboxIndex = currentImages.length - 1;
+            if (currentLightboxIndex >= currentImages.length) currentLightboxIndex = 0;
+            document.getElementById('lightboxImg').src = currentImages[currentLightboxIndex].data;
+        }
+
+        // 切换侧边栏（移动端）
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+
+        // 工具函数
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
+
+            return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('lightbox').classList.contains('active')) {
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') navigateLightbox(-1, e);
+                if (e.key === 'ArrowRight') navigateLightbox(1, e);
+            }
+        });
+
+        // Enter键确认新建群组
+        document.getElementById('groupNameInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addGroup();
+        });
+
+        // 启动
+        init();
+    </script>
+</body>
+</html>

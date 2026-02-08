@@ -1,0 +1,152 @@
+Name repr: '????????TOP10'
+Name: ????????TOP10
+Name bytes (utf-8): 3f3f3f3f3f3f3f3f544f503130
+Field: '文本'
+Field: '单选'
+Field: '日期'
+Field: '附件'
+Field: '??'
+Field: '????'
+Field: '???'
+
+Table 1 records:
+{
+  "code": 0,
+  "data": {
+    "has_more": false,
+    "items": [
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "recaXyFGrI",
+        "record_id": "recaXyFGrI"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "rec3cV6Als",
+        "record_id": "rec3cV6Als"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "reclxuUumQ",
+        "record_id": "reclxuUumQ"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "recK3iOj73",
+        "record_id": "recK3iOj73"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "recPZyprav",
+        "record_id": "recPZyprav"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "recjmLEja3",
+        "record_id": "recjmLEja3"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "rec4upR783",
+        "record_id": "rec4upR783"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "reczFtsFBI",
+        "record_id": "reczFtsFBI"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "reclQH6n4d",
+        "record_id": "reclQH6n4d"
+      },
+      {
+        "fields": {
+          "??": null,
+          "???": null,
+          "????": null,
+          "单选": null,
+          "文本": null,
+          "日期": null,
+          "附件": null
+        },
+        "id": "recWFC2pRX",
+        "record_id": "recWFC2pRX"
+      }
+    ],
+    "total": 10
+  },
+  "msg": "success"
+}

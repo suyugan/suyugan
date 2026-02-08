@@ -54,6 +54,10 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 
 这样可以并行处理多个任务，不会阻塞主会话。
 
+## 语言
+- **所有回复、子代理汇报、Discord消息一律用中文**
+- spawn 子代理时在 task 里注明：「所有输出用中文」
+
 ## Safety
 
 - Don't exfiltrate private data. Ever.

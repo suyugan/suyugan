@@ -1,0 +1,62 @@
+Root dept error: HTTP Error 403: Forbidden
+
+投放组 sub-dept error: HTTP Error 400: Bad Request
+
+投放组 users error: HTTP Error 400: Bad Request
+
+Tenant info: {
+  "code": 0,
+  "data": {
+    "tenant": {
+      "avatar": {
+        "avatar_240": "https://s1-imfile.feishucdn.com/static-resource/v1/v2_f577c91f-fff9-4008-8e97-e1133bee13eg~?image_size=240x240&cut_type=&quality=&format=png&sticker_format=.webp",
+        "avatar_640": "https://s1-imfile.feishucdn.com/static-resource/v1/v2_f577c91f-fff9-4008-8e97-e1133bee13eg~?image_size=640x640&cut_type=&quality=&format=png&sticker_format=.webp",
+        "avatar_72": "https://s1-imfile.feishucdn.com/static-resource/v1/v2_f577c91f-fff9-4008-8e97-e1133bee13eg~?image_size=72x72&cut_type=&quality=&format=png&sticker_format=.webp",
+        "avatar_origin": "https://s1-imfile.feishucdn.com/static-resource/v1/v2_f577c91f-fff9-4008-8e97-e1133bee13eg~?image_size=noop&cut_type=&quality=&format=png&sticker_format=.webp"
+      },
+      "display_id": "F556919389",
+      "name": "广州大师兄文化传播有限公司",
+      "tenant_key": "103d6fe2d708175d",
+      "tenant_tag": 0
+    }
+  },
+  "msg": "success"
+}
+
+Approvals error: HTTP Error 400: Bad Request
+
+Table1 views: {
+  "code": 0,
+  "data": {
+    "has_more": false,
+    "items": [
+      {
+        "view_id": "vewQjqW3wX",
+        "view_name": "表格",
+        "view_public_level": "Public",
+        "view_type": "grid"
+      }
+    ],
+    "page_token": "vewQjqW3wX",
+    "total": 1
+  },
+  "msg": "success"
+}
+
+Table2 views: {
+  "code": 0,
+  "data": {
+    "has_more": false,
+    "items": [
+      {
+        "view_id": "vewILVwq86",
+        "view_name": "Grid",
+        "view_public_level": "Public",
+        "view_type": "grid"
+      }
+    ],
+    "page_token": "vewILVwq86",
+    "total": 1
+  },
+  "msg": "success"
+}

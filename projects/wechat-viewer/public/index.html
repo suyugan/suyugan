@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>寰俊缇よ亰鎴浘</title>
+  <title>微信群聊截图</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -327,50 +327,50 @@
   <div class="container">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>缇よ亰鍒楄〃</h2>
-        <button class="btn" onclick="showCreateGroup()">+ 鏂板缓</button>
+        <h2>群聊列表</h2>
+        <button class="btn" onclick="showCreateGroup()">+ 新建</button>
       </div>
       <div class="group-list" id="groupList"></div>
     </aside>
     <main class="main">
       <div class="main-header">
         <div style="display:flex;align-items:center;gap:12px;">
-          <button class="btn mobile-toggle" onclick="toggleSidebar()">鈽?/button>
-          <h2 id="currentGroupName">閫夋嫨涓€涓兢鑱?/h2>
+          <button class="btn mobile-toggle" onclick="toggleSidebar()">☰</button>
+          <h2 id="currentGroupName">选择一个群聊</h2>
         </div>
         <div class="header-actions" id="headerActions" style="display:none;">
-          <button class="btn" onclick="triggerUpload()">涓婁紶鍥剧墖</button>
-          <button class="btn btn-outline" onclick="showEditGroup()">缂栬緫</button>
-          <button class="btn btn-danger" onclick="deleteGroup()">鍒犻櫎</button>
+          <button class="btn" onclick="triggerUpload()">上传图片</button>
+          <button class="btn btn-outline" onclick="showEditGroup()">编辑</button>
+          <button class="btn btn-danger" onclick="deleteGroup()">删除</button>
         </div>
       </div>
       <div class="image-container" id="imageContainer">
         <div class="empty-state">
-          <span>馃憟</span>
-          <p>璇蜂粠宸︿晶閫夋嫨鎴栧垱寤轰竴涓兢鑱?/p>
+          <span>👆</span>
+          <p>请从左侧选择或创建一个群聊</p>
         </div>
       </div>
     </main>
   </div>
   <div class="modal" id="groupModal">
     <div class="modal-content">
-      <h3 id="modalTitle">鍒涘缓鏂扮兢鑱?/h3>
+      <h3 id="modalTitle">创建新群聊</h3>
       <div class="form-group">
-        <label>缇ゅ悕绉?/label>
-        <input type="text" id="groupNameInput" placeholder="杈撳叆缇ゅ悕绉?>
+        <label>群名称</label>
+        <input type="text" id="groupNameInput" placeholder="输入群名称">
       </div>
       <div class="modal-actions">
-        <button class="btn btn-outline" onclick="closeModal()">鍙栨秷</button>
-        <button class="btn" onclick="saveGroup()">淇濆瓨</button>
+        <button class="btn btn-outline" onclick="closeModal()">取消</button>
+        <button class="btn" onclick="saveGroup()">保存</button>
       </div>
     </div>
   </div>
   <div class="preview-modal" id="previewModal" onclick="closePreview()">
-    <button class="preview-close">脳</button>
+    <button class="preview-close">×</button>
     <img id="previewImage" src="">
   </div>
   <div class="upload-overlay" id="uploadOverlay">
-    <div class="upload-text" id="uploadText">姝ｅ湪涓婁紶...</div>
+    <div class="upload-text" id="uploadText">正在上传...</div>
     <div class="upload-progress">
       <div class="upload-progress-bar" id="uploadProgress"></div>
     </div>
@@ -389,11 +389,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadGroups() {
   try {
-    const res = await fetch('/api/groups');
+    const res = await fetch('api/groups');
     const groups = await res.json();
     const list = document.getElementById('groupList');
     if (groups.length === 0) {
-      list.innerHTML = '<div class="empty-state" style="padding:40px;"><span>馃摥</span><p>杩樻病鏈夌兢鑱?br>鐐瑰嚮涓婃柟"鏂板缓"鍒涘缓</p></div>';
+      list.innerHTML = '<div class="empty-state" style="padding:40px;"><span>📭</span><p>还没有群聊<br>点击上方"新建"创建</p></div>';
       return;
     }
     list.innerHTML = groups.map(function(g) {
@@ -401,7 +401,7 @@ async function loadGroups() {
         '<div class="group-avatar">' + (g.avatar ? '<img src="' + g.avatar + '">' : g.name.charAt(0)) + '</div>' +
         '<div class="group-info">' +
           '<div class="group-name">' + escapeHtml(g.name) + '</div>' +
-          '<div class="group-count">' + g.image_count + ' 寮犲浘鐗?/div>' +
+          '<div class="group-count">' + g.image_count + ' 张图片</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -412,7 +412,7 @@ async function loadGroups() {
 
 async function selectGroup(id) {
   try {
-    const res = await fetch('/api/groups');
+    const res = await fetch('api/groups');
     const groups = await res.json();
     currentGroup = groups.find(function(g) { return g.id === id; });
     if (!currentGroup) return;
@@ -429,7 +429,7 @@ async function selectGroup(id) {
 async function loadAllImages() {
   if (!currentGroup) return;
   try {
-    const res = await fetch('/api/groups/' + currentGroup.id + '/images?page=1&limit=1000');
+    const res = await fetch('api/groups/' + currentGroup.id + '/images?page=1&limit=1000');
     const data = await res.json();
     allImages = data.images;
     renderImages();
@@ -441,33 +441,33 @@ async function loadAllImages() {
 function renderImages() {
   const container = document.getElementById('imageContainer');
   if (allImages.length === 0) {
-    container.innerHTML = '<div class="empty-state"><span>馃摲</span><p>杩樻病鏈夊浘鐗?br>鐐瑰嚮涓婃柟"涓婁紶鍥剧墖"鎴栨嫋鎷藉埌姝ゅ</p></div>';
+    container.innerHTML = '<div class="empty-state"><span>📷</span><p>还没有图片<br>点击上方"上传图片"或拖拽到此处</p></div>';
     return;
   }
   const latestImages = allImages.slice(0, LATEST_COUNT);
   const historyImages = allImages.slice(LATEST_COUNT);
   let html = '<div class="latest-section">' +
-    '<div class="section-title">鏈€鏂版埅鍥?/div>' +
+    '<div class="section-title">最新截图</div>' +
     '<div class="latest-images">' +
     latestImages.map(function(img) {
       return '<div class="latest-image" onclick="previewImage(\'' + img.url + '\')">' +
         '<img src="' + img.url + '" loading="lazy">' +
-        '<button class="delete-btn" onclick="event.stopPropagation();deleteImage(\'' + img.id + '\')">脳</button>' +
+        '<button class="delete-btn" onclick="event.stopPropagation();deleteImage(\'' + img.id + '\')">×</button>' +
       '</div>';
     }).join('') +
     '</div></div>';
   if (historyImages.length > 0) {
     html += '<div class="history-section">' +
       '<button class="history-toggle" onclick="toggleHistory(this)">' +
-        '<span class="arrow">鈻?/span>' +
-        '<span>鏇存棭鐨勬埅鍥?/span>' +
-        '<span class="history-count">' + historyImages.length + ' 寮?/span>' +
+        '<span class="arrow">▼</span>' +
+        '<span>更早的截图</span>' +
+        '<span class="history-count">' + historyImages.length + ' 张</span>' +
       '</button>' +
       '<div class="history-images hide" id="historyImages">' +
       historyImages.map(function(img) {
         return '<div class="history-image" onclick="previewImage(\'' + img.url + '\')">' +
           '<img src="' + img.url + '" loading="lazy">' +
-          '<button class="delete-btn" onclick="event.stopPropagation();deleteImage(\'' + img.id + '\')">脳</button>' +
+          '<button class="delete-btn" onclick="event.stopPropagation();deleteImage(\'' + img.id + '\')">×</button>' +
         '</div>';
       }).join('') +
       '</div></div>';
@@ -484,7 +484,7 @@ function toggleHistory(btn) {
 
 function showCreateGroup() {
   editingGroup = false;
-  document.getElementById('modalTitle').textContent = '鍒涘缓鏂扮兢鑱?;
+  document.getElementById('modalTitle').textContent = '创建新群聊';
   document.getElementById('groupNameInput').value = '';
   document.getElementById('groupModal').classList.add('active');
 }
@@ -492,112 +492,115 @@ function showCreateGroup() {
 function showEditGroup() {
   if (!currentGroup) return;
   editingGroup = true;
-  document.getElementById('modalTitle').textContent = '缂栬緫缇よ亰';
+  document.getElementById('modalTitle').textContent = '编辑群聊';
   document.getElementById('groupNameInput').value = currentGroup.name;
   document.getElementById('groupModal').classList.add('active');
 }
 
 async function saveGroup() {
-  var name = document.getElementById('groupNameInput').value.trim();
-  if (!name) {
-    alert('璇疯緭鍏ョ兢鍚嶇О');
-    return;
-  }
+  const name = document.getElementById('groupNameInput').value.trim();
+  if (!name) return alert('请输入群名称');
   try {
     if (editingGroup && currentGroup) {
-      await fetch('/api/groups/' + currentGroup.id, {
+      await fetch('api/groups/' + currentGroup.id, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, avatar: currentGroup.avatar })
+        body: JSON.stringify({ name: name })
       });
-      currentGroup.name = name;
-      document.getElementById('currentGroupName').textContent = name;
     } else {
-      var res = await fetch('/api/groups', {
+      const res = await fetch('api/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name })
       });
-      var group = await res.json();
-      currentGroup = group;
-      selectGroup(group.id);
+      const newGroup = await res.json();
+      currentGroup = newGroup;
+      document.getElementById('currentGroupName').textContent = name;
+      document.getElementById('headerActions').style.display = 'flex';
     }
     closeModal();
     loadGroups();
+    if (currentGroup) loadAllImages();
   } catch (e) {
     console.error('saveGroup error:', e);
-    alert('淇濆瓨澶辫触: ' + e.message);
+    alert('保存失败');
   }
 }
 
 async function deleteGroup() {
   if (!currentGroup) return;
-  if (!confirm('纭畾鍒犻櫎缇よ亰"' + currentGroup.name + '"鍙婂叾鎵€鏈夊浘鐗囧悧锛?)) return;
+  if (!confirm('确定删除群聊 "' + currentGroup.name + '" 及所有图片？')) return;
   try {
-    await fetch('/api/groups/' + currentGroup.id, { method: 'DELETE' });
+    await fetch('api/groups/' + currentGroup.id, { method: 'DELETE' });
     currentGroup = null;
-    document.getElementById('currentGroupName').textContent = '閫夋嫨涓€涓兢鑱?;
+    document.getElementById('currentGroupName').textContent = '选择一个群聊';
     document.getElementById('headerActions').style.display = 'none';
-    document.getElementById('imageContainer').innerHTML = '<div class="empty-state"><span>馃憟</span><p>璇蜂粠宸︿晶閫夋嫨鎴栧垱寤轰竴涓兢鑱?/p></div>';
+    document.getElementById('imageContainer').innerHTML = '<div class="empty-state"><span>👆</span><p>请从左侧选择或创建一个群聊</p></div>';
     loadGroups();
   } catch (e) {
     console.error('deleteGroup error:', e);
+    alert('删除失败');
   }
 }
 
+function closeModal() {
+  document.getElementById('groupModal').classList.remove('active');
+}
+
 function triggerUpload() {
-  if (!currentGroup) {
-    alert('璇峰厛閫夋嫨涓€涓兢鑱?);
-    return;
-  }
+  if (!currentGroup) return alert('请先选择群聊');
   document.getElementById('fileInput').click();
 }
 
 async function handleUpload(files) {
-  if (!files.length || !currentGroup) return;
-  var overlay = document.getElementById('uploadOverlay');
-  var progress = document.getElementById('uploadProgress');
-  var text = document.getElementById('uploadText');
+  if (!currentGroup || !files.length) return;
+  const overlay = document.getElementById('uploadOverlay');
+  const progressBar = document.getElementById('uploadProgress');
+  const uploadText = document.getElementById('uploadText');
   overlay.classList.add('active');
-  var formData = new FormData();
-  for (var i = 0; i < files.length; i++) {
+  const formData = new FormData();
+  for (let i = 0; i < files.length; i++) {
     formData.append('images', files[i]);
   }
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', '/api/groups/' + currentGroup.id + '/images');
-  xhr.upload.onprogress = function(e) {
-    if (e.lengthComputable) {
-      var pct = Math.round((e.loaded / e.total) * 100);
-      progress.style.width = pct + '%';
-      text.textContent = '姝ｅ湪涓婁紶... ' + pct + '%';
-    }
-  };
-  xhr.onload = function() {
-    overlay.classList.remove('active');
-    progress.style.width = '0%';
-    document.getElementById('fileInput').value = '';
-    if (xhr.status === 200) {
-      loadAllImages();
-      loadGroups();
+  try {
+    uploadText.textContent = '正在上传 ' + files.length + ' 张图片...';
+    progressBar.style.width = '30%';
+    const res = await fetch('api/groups/' + currentGroup.id + '/images', {
+      method: 'POST',
+      body: formData
+    });
+    progressBar.style.width = '100%';
+    if (res.ok) {
+      uploadText.textContent = '上传成功！';
+      setTimeout(function() {
+        overlay.classList.remove('active');
+        progressBar.style.width = '0%';
+        loadAllImages();
+        loadGroups();
+      }, 500);
     } else {
-      alert('涓婁紶澶辫触');
+      throw new Error('Upload failed');
     }
-  };
-  xhr.onerror = function() {
-    overlay.classList.remove('active');
-    alert('涓婁紶澶辫触');
-  };
-  xhr.send(formData);
+  } catch (e) {
+    console.error('handleUpload error:', e);
+    uploadText.textContent = '上传失败';
+    setTimeout(function() {
+      overlay.classList.remove('active');
+      progressBar.style.width = '0%';
+    }, 1500);
+  }
+  document.getElementById('fileInput').value = '';
 }
 
 async function deleteImage(id) {
-  if (!confirm('纭畾鍒犻櫎杩欏紶鍥剧墖鍚楋紵')) return;
+  if (!confirm('确定删除这张图片？')) return;
   try {
-    await fetch('/api/images/' + id, { method: 'DELETE' });
+    await fetch('api/images/' + id, { method: 'DELETE' });
     loadAllImages();
     loadGroups();
   } catch (e) {
     console.error('deleteImage error:', e);
+    alert('删除失败');
   }
 }
 
@@ -610,32 +613,26 @@ function closePreview() {
   document.getElementById('previewModal').classList.remove('active');
 }
 
-function closeModal() {
-  document.getElementById('groupModal').classList.remove('active');
-}
-
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
 
 function setupDragDrop() {
-  var container = document.getElementById('imageContainer');
+  const container = document.getElementById('imageContainer');
   container.addEventListener('dragover', function(e) {
     e.preventDefault();
     container.classList.add('drag-over');
   });
-  container.addEventListener('dragleave', function() {
+  container.addEventListener('dragleave', function(e) {
+    e.preventDefault();
     container.classList.remove('drag-over');
   });
   container.addEventListener('drop', function(e) {
     e.preventDefault();
     container.classList.remove('drag-over');
-    if (!currentGroup) {
-      alert('璇峰厛閫夋嫨涓€涓兢鑱?);
-      return;
+    if (e.dataTransfer.files.length > 0) {
+      handleUpload(e.dataTransfer.files);
     }
-    var files = e.dataTransfer.files;
-    if (files.length) handleUpload(files);
   });
 }
 
@@ -647,11 +644,10 @@ function escapeHtml(text) {
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    closeModal();
     closePreview();
+    closeModal();
   }
 });
 </script>
 </body>
 </html>
-

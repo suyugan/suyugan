@@ -151,6 +151,41 @@ D:\autoglm\run.ps1 "打开淘宝搜索手机壳"
 - 如果有多个 ADB 设备，需设置 `$env:ANDROID_SERIAL="192.168.41.203:34129"`
 - 需要安装 ADB Keyboard 用于中文输入
 - API Key 存储在 `D:\autoglm\run.ps1` 中
+- **解锁屏幕**：锁屏状态下向上滑动即可解锁（无需密码/图案）
+
+---
+
+## 📸 微信群截图任务（看群）
+
+### 快捷命令
+用户说「看群」时执行此任务
+
+### 截图流程（重要！每次必须截完所有新消息！）
+1. 打开微信，进入群聊「跟不上ai发展你睡得着吗?」
+2. **先向上滑动**到上次截图的位置（找到已截过的消息边界）
+3. 从边界位置开始，**向下滑动截图**（从旧消息到新消息）
+4. 每滑动一屏截一张，**必须截到最底部（最新消息）为止**
+5. **不能漏消息**——中间有多少屏就截多少屏（可能20-30张）
+6. **按截图顺序上传**（先截的先传 = 旧消息先传）
+
+### 显示规则
+- 服务器排序：`ORDER BY created_at DESC, rowid DESC`
+- 效果：**后上传的（最新消息）显示在最左/最上**
+- 符合阅读习惯：左→右、上→下 = 新→旧
+
+### 上传接口
+```
+POST http://bm.weiixxin.com/wechat/api/groups/5c021a42-1a6d-4666-b660-c754554bb8a6/images
+Content-Type: multipart/form-data
+Field: images (可多个)
+```
+
+### Python 上传示例
+```python
+import requests
+files = [('images', (f'screenshot_{i}.png', open(path, 'rb'), 'image/png')) for i, path in enumerate(screenshot_paths)]
+requests.post('http://bm.weiixxin.com/wechat/api/groups/5c021a42-1a6d-4666-b660-c754554bb8a6/images', files=files)
+```
 
 ---
 

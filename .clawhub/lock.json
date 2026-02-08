@@ -4,6 +4,62 @@
     "ai-quota-check": {
       "version": "1.0.0",
       "installedAt": 1770405376564
+    },
+    "prd": {
+      "version": "2.0.5",
+      "installedAt": 1770484794563
+    },
+    "product-manager-toolkit": {
+      "version": "1.0.0",
+      "installedAt": 1770484796718
+    },
+    "productboard-search": {
+      "version": "0.1.0",
+      "installedAt": 1770484798583
+    },
+    "thought-to-excalidraw": {
+      "version": "1.0.0",
+      "installedAt": 1770484812562
+    },
+    "video-cog": {
+      "version": "1.0.2",
+      "installedAt": 1770485832891
+    },
+    "ai-social-media-content": {
+      "version": "0.1.0",
+      "installedAt": 1770485834636
+    },
+    "x-post-automation": {
+      "version": "1.0.0",
+      "installedAt": 1770485836447
+    },
+    "automation-workflows": {
+      "version": "0.1.0",
+      "installedAt": 1770485843979
+    },
+    "playwright-scraper-skill": {
+      "version": "1.2.0",
+      "installedAt": 1770485847010
+    },
+    "screen-monitor": {
+      "version": "1.0.1",
+      "installedAt": 1770485849220
+    },
+    "duckduckgo-search": {
+      "version": "1.0.0",
+      "installedAt": 1770534169730
+    },
+    "baidu-search": {
+      "version": "1.0.2",
+      "installedAt": 1770534177558
+    },
+    "video-prompting-guide": {
+      "version": "0.1.0",
+      "installedAt": 1770537873917
+    },
+    "ai-video-gen": {
+      "version": "1.0.0",
+      "installedAt": 1770537875946
     }
   }
 }

@@ -72,6 +72,14 @@
     "proto-cog": {
       "version": "1.0.0",
       "installedAt": 1770726313267
+    },
+    "find-skills": {
+      "version": "0.1.0",
+      "installedAt": 1770755420436
+    },
+    "tavily-search": {
+      "version": "1.0.0",
+      "installedAt": 1770755497720
     }
   }
 }

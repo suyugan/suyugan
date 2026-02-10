@@ -1,28 +1,22 @@
 {
   "site": "https://new.web.cafe/tutorial/dcvnnso7jg",
   "name": "AI 编程课",
-  "lastScanned": "2026-02-09T16:41:00+08:00",
+  "lastScanned": "2026-02-10T10:00:00+08:00",
   "totalChapters": 74,
   "vipLocked": true,
   "contentAccessible": false,
-  "note": "所有章节内容需要VIP才能查看，markdown字段为空",
+  "note": "所有章节内容需要VIP才能查看，子页面返回404",
   "sections": {
-    "1.x": { "title": "开发前期准备", "chapters": 10, "topics": ["设备选购", "必备账号", "软件清单", "浏览器插件", "翻译工具", "环境配置", "Mac教程", "搜索技巧", "术语"] },
-    "2.x": { "title": "软件工具教程", "chapters": 8, "topics": ["Raycast", "GitHub Desktop", "Figma", "Glarity AI", "SiteSucker", "Easy Scraper", "Lighthouse"] },
-    "3.x": { "title": "Cursor开发", "chapters": 8, "topics": ["Cursor安装配置", "Rules", "AI Chat", "代码补全", "AI Agent", "命令面板", "开发案例"] },
-    "4.x": { "title": "全栈开发指南", "chapters": 18, "topics": ["网站类型", "HTML/CSS/JS", "Tailwind", "Markdown", "Git", "终端", "Next.js", "shadcn/ui", "数据库", "API", "域名", "Cloudflare", "gh-pages", "Vercel", "企业邮箱", "数据分析"] },
-    "5.x": { "title": "实战项目开发", "chapters": 11, "topics": ["项目初始化", "域名邮箱", "需求文档", "落地页", "Stripe支付", "核心功能", "SEO", "部署", "域名配置", "营销推广"] },
-    "6.x": { "title": "SEO优化完全指南", "chapters": 8, "topics": ["搜索引擎原理", "SEO基础", "关键词研究", "内容优化", "页面优化", "外链建设", "技术SEO"] },
-    "7.x": { "title": "网站推广运营", "chapters": 11, "topics": ["高转化关键词", "产品灵感", "竞品分析", "外链建设", "海外发布渠道", "流量变现", "跨境公司注册", "营销工具", "Chrome插件徽章", "搜索引擎收录"] }
+    "1.x": { "title": "开发前期准备", "chapters": 10 },
+    "2.x": { "title": "软件工具教程", "chapters": 8 },
+    "3.x": { "title": "Cursor开发", "chapters": 8 },
+    "4.x": { "title": "全栈开发指南", "chapters": 18 },
+    "5.x": { "title": "实战项目开发", "chapters": 11 },
+    "6.x": { "title": "SEO优化完全指南", "chapters": 8 },
+    "7.x": { "title": "网站推广运营", "chapters": 11 }
   },
-  "keyMoneyChapters": [
-    { "id": "5.5", "uid": "h1po1vth8u", "title": "Stripe支付集成指南" },
-    { "id": "5.10", "uid": "fr9zxp7el2", "title": "产品营销推广" },
-    { "id": "7.1", "uid": "cihi7urjfg", "title": "高转化关键词挖掘" },
-    { "id": "7.3", "uid": "3da5j11uo1", "title": "竞品分析与差异化策略" },
-    { "id": "7.5", "uid": "rsmaragm4r", "title": "海外产品发布渠道整理" },
-    { "id": "7.6", "uid": "ik4uerblps", "title": "流量变现完全指南" },
-    { "id": "7.7", "uid": "yacsohi21x", "title": "跨境公司注册攻略" },
-    { "id": "7.9", "uid": "dq07mlavwt", "title": "Chrome插件精选徽章获取指南" }
+  "changeLog": [
+    { "date": "2026-02-09", "change": "首次扫描，74章节" },
+    { "date": "2026-02-10", "change": "无变化，仍74章节，VIP锁定" }
   ]
 }

@@ -68,6 +68,10 @@
     "imap-smtp-email": {
       "version": "0.0.2",
       "installedAt": 1770565195081
+    },
+    "proto-cog": {
+      "version": "1.0.0",
+      "installedAt": 1770726313267
     }
   }
 }

@@ -58,6 +58,14 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - **所有回复、子代理汇报、Discord消息一律用中文**
 - spawn 子代理时在 task 里注明：「所有输出用中文」
 
+## 编程规范
+
+1. **先读文档** — 开始前先读项目 `doc/` 文件夹下的说明文档，了解项目
+2. **先规划再动手** — 复杂任务先拆分成 todo 清单（写到 md 文件里）
+3. **跟进进展** — 编码过程中更新 todo 状态，标记完成项
+4. **写说明文档** — 做完后生成/更新说明文件到项目 `doc/` 下
+5. **养成写 md 的习惯** — 所有规划、进展、总结都落到 md 文件
+
 ## Safety
 
 - Don't exfiltrate private data. Ever.

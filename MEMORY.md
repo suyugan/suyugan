@@ -22,6 +22,25 @@ This file stores distilled learnings, important decisions, and crucial context t
 - AI 视频生成（即梦AI）
 - 微信群消息采集
 
+## 苏总习惯与要求
+- 账号密码双重存储：本地 + 腾讯云 `/home/ubuntu/.credentials/accounts.md`
+- 需要账号密码先SSH服务器查，没有再问苏总
+- 重要信息立刻写文件，不能靠"记住"
+- 说话简洁不废话，回复不要英文翻译
+- 所有回复用中文
+
+## 微信插件 WCGroupSync
+- 最终版本：v4（去掉设置页hook）
+- IPA路径：`D:\wechat-plugin-dev\WeChat-GroupSync-v4.ipa`
+- 用巨魔安装，插件静默运行
+- 默认推送地址：`http://bm.weiixxin.com/wechat-sync/api/messages`
+- GitHub Actions编译，commit触发或手动dispatch
+- constructor问题：必须用`-Wl,-init,_函数名` + 非static + `__attribute__((used))`
+
+## 展示页面
+- Showcase: http://bm.weiixxin.com/wechat-sync/showcase（仿laolin.ai/showcase）
+- Dashboard: http://bm.weiixxin.com/wechat-sync/
+
 ## 2026-02-08 Updates
 
 ### Key Accomplishments

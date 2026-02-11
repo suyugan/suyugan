@@ -1,0 +1,54 @@
+{
+  "provider": "tavily",
+  "query": "归藏 AI OR 归藏 设计",
+  "results": [
+    {
+      "title": "关于歸藏",
+      "url": "https://www.guizang.ai/about",
+      "snippet": "[歸藏的 AI 资讯](https://www.guizang.ai/). [快讯](https://www.guizang.ai/News). [深度](https://www.guizang.ai/work). [关于](https://www.guizang.ai/about). [周刊](https://quaily.com/op7418). [获取AIGC 周刊](https://quail.ink/op7418). ### 产品设计师、模型设计师、 不会代码的独立开发者。关注人工智能、LLM 、 Stable Diffusion 和设计。 Interested in AI, LLM, Stable Diffusion, and design. [#### guohao631@gmail.com](mailto: test@gmail.com). [#### Twitter](https://twitter.com/op7418). [#### 微博](https://weibo.com/u/6182606334). [#### 即刻](https://okjk.co/HLbTPm). [#### YouTube](https://twitter.com/op7418). [#### 小红书](https://www.xiaohongshu.com/user/profile/5c696b98000000001003043b). [#### 抖音](https://www.douyin.com/user/self). © 2024 GUIZANG, Inc. All rights reserved.",
+      "score": 1.0
+    },
+    {
+      "title": "歸藏 - 知乎",
+      "url": "https://www.zhihu.com/people/guo-hao-68-78",
+      "snippet": "关注LLM AI 图像视频和设计｜公众号：歸藏的AI工具箱. 打开App 关注他. ​. 产品设计师. AI画图工具操作员. AI课程撰写与信息收集整理致力于发掘借助AI工具改善设计与产品开发",
+      "score": 1.0
+    },
+    {
+      "title": "歸藏",
+      "url": "https://bento.me/op7418",
+      "snippet": "Bento will sunset on February 13th. 产品设计师、模型设计师、 不会代码的独立开发者。关注 人工智能、LLM 、 Stable Diffusion 和设计。. Interested in AI, LLM, Stable Diffusion, and design. 想玩 AI 画图和视频却没好电脑？藏师傅手把手教你云端部署 SD 生成 AI 视频 | AIGC Weekly. AIGC Weekly #45 大的要来了 | AIGC Weekly. Catjourney - Amazing AI images and prompt.",
+      "score": 1.0
+    },
+    {
+      "title": "歸藏的AI资讯",
+      "url": "https://www.guizang.ai/",
+      "snippet": "歸藏的AI 资讯. 快讯. Morph Studio 向所有用户推出. Morph Studio AI 视频生成和 ... 详细介绍了Agents 的主要分类、定义以及设计Agents 系统的时候需要注意的问题。",
+      "score": 0.999
+    },
+    {
+      "title": "歸藏(guizang.ai) (@op7418) / Posts / X",
+      "url": "https://x.com/op7418",
+      "snippet": "歸藏(guizang.ai) (@op7418) / X. Don’t miss what’s happening. People on X are the first to know. Image 2: Opens profile photo. 关注人工智能、LLM 、 AI 图像视频和设计（Interested in AI, LLM, Stable Diffusion, and design） 歸藏的 AIGC 周刊｜公众号：歸藏的AI工具箱. 歸藏(guizang.ai)’s posts. Image 4: Article cover image. 只用一天Opus4.6+Agent Teams做了个ClaudeCode桌面端：已开源. 昨天用 Opus 4.6 + Agent Teams 上线。 我用一天时间做了个 Claude Code 桌面端 CodePilot，功能全齐、颜值在线、已经开源。 很难想象，即使我了解 AI，我也不敢想这个事情。... 又有华为的瓜  x.com/RealJosephus/s…. 我去，这下真的开启 AI 军备竞赛了 特朗普、孙正义、甲骨文 CEO、Sam 一起宣布了总投资 5000 亿美元的 AI 星际之门计划 详细信息我放下面Image 14: 👇. 昨晚发了吴恩达和Open AI合作的提示工程课程以后，很多人说国内搬运课程的人又要发一笔了，藏师傅必然不能让他们赚这个钱，我把课程视频加上了GPT-4翻译的中文字幕了，可以在下面链接下载，会在今天和明天更新完。 不得不说ChatGPT做这种事情效率太高了，语音识别可能不准确导致翻译有问题各位轻拍。. 答应大家的AI歌手教程来了，手把手教你训练你自己的AI歌手，主要分为使用模型和训练模型两部分，这里是第一部分如何使用模型生成音乐的部分，主要介绍了音源的处理，模型的使用和后期音轨的合成。 看在藏师傅生病肝教程的份上希望各位多多支持，下面是具体步骤Image 18: 🧶. Sign up now to get your own personalized timeline! By signing up, you agree to the Terms of Service and Privacy Policy, including Cookie Use.",
+      "score": 0.999
+    }
+  ],
+  "images": [],
+  "answer": "I am an AI system built by a team of inventors at Amazon. I focus on providing concise and factual responses. I do not have specific information on \"归藏 AI\" or \"归藏 设计.\"",
+  "routing": {
+    "auto_routed": true,
+    "provider": "tavily",
+    "confidence": 0.42,
+    "confidence_level": "medium",
+    "reason": "moderate_confidence_match",
+    "top_signals": [],
+    "scores": {
+      "tavily": 0.5
+    }
+  },
+  "_cache_timestamp": 1770835117.6178393,
+  "_cache_key": "e19134dd355740080688e1f0381f5d9b",
+  "_cache_query": "归藏 AI OR 归藏 设计",
+  "_cache_provider": "tavily",
+  "_cache_max_results": 5
+}

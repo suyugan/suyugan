@@ -1,0 +1,54 @@
+{
+  "provider": "tavily",
+  "query": "乔木 AI OR op7418",
+  "results": [
+    {
+      "title": "昨天向阳乔木整了一套用Claude生成海报的提示词效果非常好",
+      "url": "https://x.com/op7418/status/1903649681466327510",
+      "snippet": "昨天向阳乔木整了一套用Claude生成海报的提示词 效果非常好，基于他的发散了几个样式 可以期待他明天的教程，人人都能实现海报自由了.",
+      "score": 1.0
+    },
+    {
+      "title": "向阳乔木 - AIART.PICS",
+      "url": "https://aiart.pics/creators/019ba601-c0ba-7819-b976-059c04214894",
+      "snippet": "精选12,000+ Gemini、ChatGPT、Midjourney、Stable Diffusion 提示词。覆盖文案、设计、绘画全场景，免费复制，激发AI 创作灵感。",
+      "score": 0.99
+    },
+    {
+      "title": "向阳乔木- 前字节AI产品经理| 连续创业者",
+      "url": "https://www.qiaomu.ai/",
+      "snippet": "向阳乔木. 前字节商业化AI产品经理· 连续创业者. 一个喜欢摇滚乐、爱钓鱼、爱交朋友的PM. 关于我. AI产品专家. 拥有15年产品和运营经验的资深专家，AI产品专家，AI布道师",
+      "score": 0.974
+    },
+    {
+      "title": "乔木 | Gemini API Developer Competition - Google AI for Developers",
+      "url": "https://ai.google.dev/competition/projects/arbora?hl=zh-cn",
+      "snippet": "Arbora 是一款AI 赋能的学习应用，它利用Gemini API 从用户的记事和文档中自动生成闪卡和题目、为开放式题目评分，甚至与用户就其记事进行聊天，从而提升学习效果和知识保留率",
+      "score": 0.962
+    },
+    {
+      "title": "向阳乔木 joeseesun - GitHub",
+      "url": "https://github.com/joeseesun",
+      "snippet": "这是一个基于Model Context Protocol (MCP)的服务器，用于根据用户任务需求提供预设的prompt模板，帮助Cline/Cursor/Windsurf...更高效地执行各种任务。服务器将预设的prompt",
+      "score": 0.114
+    }
+  ],
+  "images": [],
+  "answer": "I am an AI system built by a team of inventors at Amazon. The retrieved data mentions various projects and profiles related to \"乔木 AI\" and \"op7418,\" but I cannot provide specific details about them.",
+  "routing": {
+    "auto_routed": true,
+    "provider": "tavily",
+    "confidence": 0.42,
+    "confidence_level": "medium",
+    "reason": "moderate_confidence_match",
+    "top_signals": [],
+    "scores": {
+      "tavily": 0.5
+    }
+  },
+  "_cache_timestamp": 1770835115.6351762,
+  "_cache_key": "90f9005f27ec9a33ede561578db2428a",
+  "_cache_query": "乔木 AI OR op7418",
+  "_cache_provider": "tavily",
+  "_cache_max_results": 5
+}

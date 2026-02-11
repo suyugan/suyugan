@@ -80,6 +80,14 @@
     "tavily-search": {
       "version": "1.0.0",
       "installedAt": 1770755497720
+    },
+    "topic-monitor": {
+      "version": "1.3.4",
+      "installedAt": 1770834027048
+    },
+    "web-search-plus": {
+      "version": "2.6.5",
+      "installedAt": 1770834065218
     }
   }
 }

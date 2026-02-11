@@ -1,0 +1,100 @@
+{
+  "topics": [
+    {
+      "id": "baoyu-dotey",
+      "name": "baoyu-dotey",
+      "query": "\u5b9d\u7389 dotey AI OR from:dotey",
+      "keywords": [
+        "\u5b9d\u7389",
+        "dotey",
+        "AI",
+        "Claude"
+      ],
+      "frequency": "daily",
+      "importance_threshold": "high",
+      "channels": [
+        "telegram"
+      ],
+      "context": "Monitoring baoyu-dotey",
+      "alert_on": [],
+      "created": "2026-02-12T02:32:52.902202"
+    },
+    {
+      "id": "qiaomu-ai",
+      "name": "qiaomu-ai",
+      "query": "\u4e54\u6728 AI OR op7418",
+      "keywords": [
+        "\u4e54\u6728",
+        "op7418",
+        "AI",
+        "Midjourney"
+      ],
+      "frequency": "daily",
+      "importance_threshold": "high",
+      "channels": [
+        "telegram"
+      ],
+      "context": "Monitoring qiaomu-ai",
+      "alert_on": [],
+      "created": "2026-02-12T02:32:58.679818"
+    },
+    {
+      "id": "guizang-ai",
+      "name": "guizang-ai",
+      "query": "\u5f52\u85cf AI OR \u5f52\u85cf \u8bbe\u8ba1",
+      "keywords": [
+        "\u5f52\u85cf",
+        "AI",
+        "\u8bbe\u8ba1",
+        "Midjourney"
+      ],
+      "frequency": "daily",
+      "importance_threshold": "high",
+      "channels": [
+        "telegram"
+      ],
+      "context": "Monitoring guizang-ai",
+      "alert_on": [],
+      "created": "2026-02-12T02:32:58.858084"
+    }
+  ],
+  "settings": {
+    "digest_day": "sunday",
+    "digest_time": "18:00",
+    "max_alerts_per_day": 5,
+    "max_alerts_per_topic_per_day": 2,
+    "deduplication_window_hours": 72,
+    "learning_enabled": true,
+    "quiet_hours": {
+      "enabled": false,
+      "start": "22:00",
+      "end": "08:00"
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "chat_id": null,
+      "silent": false,
+      "effects": {
+        "high_importance": "\u9983\u655f",
+        "medium_importance": "\u9983\u6436"
+      }
+    },
+    "discord": {
+      "enabled": false,
+      "webhook_url": null,
+      "username": "Research Bot",
+      "avatar_url": null
+    },
+    "email": {
+      "enabled": false,
+      "to": null,
+      "from": "research@yourdomain.com",
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "smtp_user": null,
+      "smtp_password": null
+    }
+  }
+}

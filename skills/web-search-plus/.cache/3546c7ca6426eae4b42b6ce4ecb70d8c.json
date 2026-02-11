@@ -1,0 +1,54 @@
+{
+  "provider": "tavily",
+  "query": "淘宝闪购 抖音",
+  "results": [
+    {
+      "title": "淘宝闪购商家课堂的主页- 抖音",
+      "url": "https://www.douyin.com/user/MS4wLjABAAAA9hFMq3FTtVzm_2eZMhn1xtxrBPbUikcZVXQxUDDQ5NSwUUi-_SNs5ow6KmPMdkCK",
+      "snippet": "淘宝闪购商家课堂：官方教你做赚钱的万单店！ 关注私信免费送店铺诊断+官方流量分配机制！ 。淘宝闪购商家课堂入驻抖音，TA的抖音号是72133476645，已有23000个粉丝，",
+      "score": 0.878
+    },
+    {
+      "title": "淘宝闪购加盟模式 - 抖音",
+      "url": "https://www.douyin.com/search/%E6%B7%98%E5%AE%9D%E9%97%AA%E8%B4%AD%E5%8A%A0%E7%9B%9F%E6%A8%A1%E5%BC%8F",
+      "snippet": "00:13 淘宝闪购是天猫、淘宝旗下的即时零售业务，前身叫淘宝小时达，现在统一叫闪购，还能在淘宝首页直接看到。用户下单后三十分钟就能配送到家。 00:21 现在",
+      "score": 0.802
+    },
+    {
+      "title": "淘宝闪购：用抖音的刀，割竞对的肉 - 新浪财经",
+      "url": "https://finance.sina.cn/stock/jdts/2025-08-11/detail-infkrier0297279.d.html?oid=2024%E6%96%B0%E7%89%88%E7%9A%87%E5%86%A0%E8%B6%B3%E7%90%83%E5%87%BA%E7%A7%9F%E2%95%90Telegram%E9%A3%9E%E6%9C%BAmos070809%E2%95%90OXBY&vt=4",
+      "snippet": "小节取代大促是淘宝闪购用抖音化的第一步。用碎片化造节来卷入生态，把大促分割为小促卷入用户，狙击竞对。效果显而易见，全网用户都在讨论第一杯奶茶的仪式",
+      "score": 0.778
+    },
+    {
+      "title": "淘宝闪购优享单怎么开 - 抖音",
+      "url": "https://www.douyin.com/shipin/7597995153420519467",
+      "snippet": "淘宝闪购的隐藏玩法#外卖运营#橘猫外卖 · 淘宝闪购30单/天都没有的一定要看完，一个视频教会你如何拉爆曝光，帮助你一周内实现涨单。 · 淘宝闪购全站推广使用",
+      "score": 0.738
+    },
+    {
+      "title": "抖音如何玩轉淘寶閃購？解鎖你的購物新姿勢！  ",
+      "url": "https://world.taobao.com/lang/zh-tw/goods/16311472.htm",
+      "snippet": "想要在衆多閃購中脫穎而出嗎？今天就帶你揭祕抖音如何成為你淘寶閃購的祕密武器！從零開始教你玩轉閃購的每一個細節，讓你輕鬆抓住每一次限時優惠，告別",
+      "score": 0.731
+    }
+  ],
+  "images": [],
+  "answer": "淘宝闪购是淘宝和天猫的即时零售业务，通过抖音推广吸引用户。抖音号72133476645提供闪购相关信息。抖音帮助淘宝闪购分割大促，吸引更多用户。",
+  "routing": {
+    "auto_routed": true,
+    "provider": "tavily",
+    "confidence": 0.0,
+    "confidence_level": "low",
+    "reason": "no_signals_matched",
+    "top_signals": [],
+    "scores": {
+      "tavily": 0.0
+    }
+  },
+  "_cache_timestamp": 1770835113.587448,
+  "_cache_key": "3546c7ca6426eae4b42b6ce4ecb70d8c",
+  "_cache_query": "淘宝闪购 抖音",
+  "_cache_provider": "tavily",
+  "_cache_max_results": 5
+}

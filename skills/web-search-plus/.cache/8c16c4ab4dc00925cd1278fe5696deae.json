@@ -1,0 +1,35 @@
+{
+  "provider": "tavily",
+  "query": "宝玉 dotey AI",
+  "results": [
+    {
+      "title": "宝玉- 博客园",
+      "url": "https://www.cnblogs.com/dotey",
+      "snippet": "我们认为，印度一名在手机上编程的学生应该能够使用与硅谷专业开发者相同的AI。为了实现这一目标，我们训练定制模型，这些模型更小、更高效，并且可以以大大",
+      "score": 0.762
+    },
+    {
+      "title": "宝玉| Indie Hacker Tools - 独立开发者出海工具箱",
+      "url": "https://indiehackertools.net/tools/dotey",
+      "snippet": "# 宝玉. 宝玉老师是 AIGC 技术圈资深大咖，X(Twitter)/微博等社交平台上有着极高人气和影响力。他时刻紧跟 AIGC 前沿趋势，内容独到见解，非常硬核。圈内的许多最新一手信息源都来自于他，堪称信息流的顶端。. ## 📚 相关媒体. * 博客：https://baoyu.io ，记录了个人对于人工智能技术发展的思考、使用技巧、以及如何在软件工程和日常生活中应用这些技术。. * 微博：https://weibo.com/dotey. * Youtube：https://www.youtube.com/@baoyu\\_，专注于实用 AI 课程翻译，最新 AI 资讯翻译。. ## 👨‍🏫 翻译课程. 宝玉老师翻译的课程《“多AI智能体系统”（Multi AI Agent Systems）》. ## 🔥 热门推文. ## 👉 相关推荐. ## 独立开发者变现周刊. Indie Hacker Tools 作者，每天分享独立开发实用工具。. 头部 AI 科技博主，日更 AI 前沿资讯。. 独立开发者的翘楚、Build In Public 践行者，开发了 Interior AI、Nomad List、Remote OK 等产品。.",
+      "score": 0.719
+    },
+    {
+      "title": "宝玉的分享 - Directory",
+      "url": "https://qianniuspace.com/item/dotey",
+      "snippet": "宝玉的分享. Prompt Engineer, dedicated to learning and disseminating knowledge about AI, software engineering, and engineering management.",
+      "score": 0.715
+    }
+  ],
+  "images": [],
+  "answer": "Dotey AI specializes in creating efficient, smaller AI models for mobile programming. Dotey is a prominent figure in AI, known for his insights and tools for independent developers. He shares AI knowledge through blogs, social media, and translated courses.",
+  "routing": {
+    "auto_routed": false,
+    "provider": "tavily"
+  },
+  "_cache_timestamp": 1770834973.2083852,
+  "_cache_key": "8c16c4ab4dc00925cd1278fe5696deae",
+  "_cache_query": "宝玉 dotey AI",
+  "_cache_provider": "tavily",
+  "_cache_max_results": 3
+}

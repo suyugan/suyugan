@@ -1,0 +1,54 @@
+{
+  "provider": "tavily",
+  "query": "search query here",
+  "results": [
+    {
+      "title": "Free-text Search - HERE Technologies",
+      "url": "https://www.here.com/docs/bundle/places-search-api-developer-guide/page/topics/free-text-search.html",
+      "snippet": "The discover/search resource uses the HERE place search engine to provide a list of places on the basis of a text string entered by the user.",
+      "score": 0.56
+    },
+    {
+      "title": "Get started with Search - HERE Technologies",
+      "url": "https://www.here.com/docs/bundle/sdk-for-ios-developer-guide/page/topics/search.html",
+      "snippet": "*   - [x] HERE Geocoding and Search API v7. *   - [x] HERE Geocoding and Search. *   - [x] HERE Places Search API. *   You can specify the language of the returned search results by setting a `LanguageCode`. // Add a new marker for each search result on map. // Add a new marker for each search result on map. Once `WebImage` access is enabled and valid credentials for rich content are in place, images will be included in the search results. The above code uses a `GeoBox` to search directly in the shown map viewport, so it is not necessary to zoom to the found results. If the search area is not equal to the shown map viewport, you can use the following code to zoom to the results by creating a `GeoBox` from a list of `GeoCoordinates`. // Add a new marker for each search result on map. // Add a new marker for each search result on map.",
+      "score": 0.45
+    },
+    {
+      "title": "Three Steps to Create An Effective Search Query - YouTube",
+      "url": "https://www.youtube.com/watch?v=x780f0yLmU0",
+      "snippet": "Three Steps to Create An Effective Search Query\nU of G Library\n7500 subscribers\n16 likes\n1800 views\n22 Feb 2023\nThis work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. For more information, visit: https://creativecommons.org/licenses/by-sa/4.0/\n\nTranscript:\nThis video will demonstrate a three-step process you can use to create an effective search query. A search query is what you type into a search box to retrieve journal articles and other sources from a library database.   \n\nMake sure you have a clear sense of your topic or research question before formulating your search. For this video, our example research question is: “How can retail businesses reduce the amount of waste they generate?” \n\nStep 1. Identify the main concepts in the research question. \n\nHere, the two main concepts seem to be “retail” and “waste.” If an article includes both of these concepts in the title and/or abstract, it’s likely that it’s about retail businesses and waste management. Different research questions may have fewer or more main concepts. \n\nStep 2. Brainstorm synonyms and related words for each main concept. \n\nFor concept number 1, the “retail” concept, we might add “retailer” and “retailers.” We could also consider adding merchant and merchants. \n\nFor concept number 2, the “waste” concept, we can add wastes, recycle, recycling, recycled, compost, composted, composter, and garbage. \n\nStep 3. Insert the words we have brainstormed into a search formula. We want the database to find articles with at least one word from each of our identified concepts in their title and/or abstract. We can tell the database to do this using Boolean operators and search modifiers in our query. \n\n[The following examples of Boolean operators and search modifiers appear: AND, OR, a set of parentheses, a set of double quotes, and an asterisk.] \n\n If you’re not familiar with Boolean operators and search modifiers, check out our handouts, linked in the description box below. \n\n[Images appear of two handouts, titled Boolean Operators Cheat Sheet and Search Modifiers Cheat Sheet.] \n\nHere’s a formula that we can use to create our query. \n\n[The formula is as follows: (related word OR related word) AND (related word OR related word).] \n\nWe can place all words from concept #1 inside a set of parentheses and join each word with OR.  \n\n[The first set of parentheses in the formula is highlighted.] \n\nWe can do the same thing with all the words from concept #2. \n\n[The second set of parentheses in the formula is highlighted.] \n\nThen, we can join the two sets of parentheses with AND. \n\nIf there are more than two main concepts, add additional sets of parentheses and join with AND. \n\n[The Boolean operator AND appears along with a third set of parentheses at the end of the original formula.] \n\nThis formula tells the database to find articles with at least one word from each of the main concepts. \n\nLet’s put our brainstormed words into the formula.   \n\nWe can use search modifiers as needed inside each set of parentheses. \n\nInside the first set of parentheses, we can use retail* OR merchant* [verbalized as retail asterisk or merchant asterisk] to search for all of the words identified to represent concept #1. \n\nInside the second set of parentheses, we can use waste* OR recycl* OR compost* OR garbage [verbalized as waste asterisk or recycl asterisk or compost asterisk or garbage] to search for all of the words identified to represent concept #2. \n\nThe final search query is: (retail* OR merchant*) AND (waste* OR recycl* OR compost* OR garbage). \n\n[The query can be verbalized as open parenthesis retail asterisk or merchant asterisk, close parenthesis, or open parenthesis, waste asterisk or recycl asterisk or compost asterisk or garbage, close parenthesis.] \n\nThe query is ready to be entered into a library database search box. \n\nIf you have any questions, feel free to email, chat or drop by! \n\n[Questions? Reach out. library@uoguelph.ca. lib.uoguelph.ca. Twitter and Instagram: @uglibrary. Facebook: /McLaughlinLibrary. YouTube: /UoGLibrary.]    \n\n[Music: Benjamin Tissot – Happiness. Retrieved from: bensound.com] \n\n[This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License] \n\nFor more information about our services, and what we're offering this semester, visit our website: www.lib.uoguelph.ca.\nTo get up-to-date information about workshops and events, follow us on social.\nTwitter - https://twitter.com/uglibrary\nInstagram - https://www.instagram.com/uglibrary/\nFacebook - https://www.facebook.com/McLaughlinLibrary\n1 comments\n",
+      "score": 0.438
+    },
+    {
+      "title": "What is a search query and how is it processed by a search engine?",
+      "url": "https://www.algolia.com/blog/product/what-is-a-search-query-and-how-is-it-processed-by-a-search-engine",
+      "snippet": "# What is a search query and how is it processed by a search engine? ## What is a search query? ### Navigational search queries. ### Informational search queries. ### Transactional search queries. They possess what’s known as “transactional intent.” Using search engine optimization (SEO) to target keywords is applicable mostly for this type of query, since the right words used in digital marketing will rank your business higher in people’s search results and potentially lead to higher revenue. ## The journey of a search query. Most search engines parse the query and then send it to the index server for processing. Plus, in addition to the actual search query, a search engine may consider other relevant data to help it decide how to rank the results, including the searcher’s:. As the search engine is comparing records and figuring out rank, it’s asking itself questions like:. ## One last query: How does Algolia’s search engine rank?",
+      "score": 0.397
+    },
+    {
+      "title": "Search Query Understanding. Introduction: | by Siddharth Sharma",
+      "url": "https://siddharth-1729-65206.medium.com/search-query-understanding-8e8baec040c5",
+      "snippet": "Once we detect category and product type of a query, we can apply set of regular expressions applicable for only those categories and PTs to extract numerical attributes e.g. for query like “2 gallon whole milk”, the category can be “Grocery>Milk>Whole Milk” and PT can be Milk, once we know these values we can apply a set of regular expression created exclusively to handle the grocery/milk quantity/amount normalization. **Candidate generation** means fetching normalized brand candidates that are syntactically or semantically similar to the mention string, e.g for search query “paw-patrol fire truck”, the tagger would generate mention for Brand as “paw-patrol” and the candidate generation phase can find a set of syntactically similar brands from catalog for category Toys. More advanced techniques like creating a separate optimization service to predicts weights for attributes to be boosted based on user query can further enhance the relevance of returned results e.g. for clothing query the SOLR weight prediction algorithm can provide more weights to brand and price rather then style/pattern.",
+      "score": 0.275
+    }
+  ],
+  "images": [],
+  "answer": "A search query is a user input to a search engine to find information. It is processed by analyzing keywords and matching them to relevant content. Search engines rank results based on relevance and user intent.",
+  "routing": {
+    "auto_routed": true,
+    "provider": "tavily",
+    "confidence": 0.0,
+    "confidence_level": "low",
+    "reason": "no_signals_matched",
+    "top_signals": [],
+    "scores": {
+      "tavily": 0.0
+    }
+  },
+  "_cache_timestamp": 1770835111.413475,
+  "_cache_key": "fbc7afeaf623c25f5e64ccbe04f3fec9",
+  "_cache_query": "search query here",
+  "_cache_provider": "tavily",
+  "_cache_max_results": 5
+}

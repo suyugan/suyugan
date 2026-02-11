@@ -30,12 +30,15 @@ This file stores distilled learnings, important decisions, and crucial context t
 - 所有回复用中文
 
 ## 微信插件 WCGroupSync
-- 最终版本：v4（去掉设置页hook）
-- IPA路径：`D:\wechat-plugin-dev\WeChat-GroupSync-v4.ipa`
-- 用巨魔安装，插件静默运行
+- **当前状态：调试闪退中**（v8测试：空操作hook，等结果）
+- IPA基础：秋名山版WeChat 8.0.69，用lief注入LOAD_WEAK_DYLIB
+- 用巨魔(TrollStore)安装
 - 默认推送地址：`http://bm.weiixxin.com/wechat-sync/api/messages`
-- GitHub Actions编译，commit触发或手动dispatch
+- GitHub Actions编译(macOS-14)，commit触发或手动dispatch
 - constructor问题：必须用`-Wl,-init,_函数名` + 非static + `__attribute__((used))`
+- **闪退排查进度**：空dylib不崩，空操作hook待测，怀疑方法签名不匹配
+- 测试版用 WCGroupSync_minimal.m，正式版用 WCGroupSync.m
+- workflow当前编译minimal版本（记得改回来！）
 
 ## 展示页面
 - Showcase: http://bm.weiixxin.com/wechat-sync/showcase（仿laolin.ai/showcase）

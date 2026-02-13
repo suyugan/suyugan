@@ -70,6 +70,10 @@ This file stores distilled learnings, important decisions, and crucial context t
 - Tavily: REDACTED_TAVILY_KEY
 - Google Gemini: REDACTED_GEMINI_KEY
 
+### 微信公众号「苏煜淦」
+- **AppID**: wx9a447fddc9ba6a59
+- **AppSecret**: REDACTED_WECHAT_SECRET
+
 ## 2026-02-08 Updates
 
 ### Key Accomplishments

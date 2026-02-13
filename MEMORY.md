@@ -44,6 +44,32 @@ This file stores distilled learnings, important decisions, and crucial context t
 - Showcase: http://bm.weiixxin.com/wechat-sync/showcase（仿laolin.ai/showcase）
 - Dashboard: http://bm.weiixxin.com/wechat-sync/
 
+## 工作流程配置（切换模型后必须保持）
+
+### 视频制作→发布抖音 流程
+1. 分析参考视频：用视频分析API (http://localhost:18810) 下载+抽帧+转录
+2. 写文案：模仿风格，原创内容，画面精确匹配文案
+3. 生成配图：优先用 Replicate FLUX / Google Imagen / HuggingFace FLUX Space
+4. 配音：用TTS生成语音
+5. 合成视频：FFmpeg或Remotion
+6. **发布抖音**：浏览器自动化打开 creator.douyin.com，上传+填写信息+发布（网页版，非headless）
+
+### KOL舆情监控
+- topic-monitor skill，每天9:00自动运行（cron job）
+- 监控：宝玉(@dotey)、乔木/归藏(@op7418)
+- 搜索引擎：Tavily（key: REDACTED_TAVILY_KEY）
+- topic-monitor已修复Windows兼容（python3→python, encoding=utf-8, 系统环境变量）
+
+### 子代理任务规则
+- **任务失败必须立即通知用户！不能静默失败！**
+- 定期检查子代理状态（每5-10分钟）
+- 发现卡住/失败立即告知并提供解决方案
+- 多步骤任务先spawn准备工作（如登录），再spawn主任务
+
+### API Keys
+- Tavily: REDACTED_TAVILY_KEY
+- Google Gemini: REDACTED_GEMINI_KEY
+
 ## 2026-02-08 Updates
 
 ### Key Accomplishments

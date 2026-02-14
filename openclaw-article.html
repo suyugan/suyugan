@@ -1,0 +1,572 @@
+<section style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 20px; max-width: 100%;">
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+你有没有想过，<br />
+给自己的 WhatsApp、Telegram、Discord 都接上一个 AI 助手，<br />
+随时随地发消息就能让它帮你干活？
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong style="color: #1a73e8;">OpenClaw 就是干这个的。</strong>
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+它是一个开源的、自托管的 AI 网关（Gateway），<br />
+把你常用的聊天软件和 AI 编程代理连起来。<br />
+你在手机上发一条消息，它就在你的电脑上执行任务，<br />
+读文件、写代码、搜网页、发通知……全自动。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+今天这篇文章，<br />
+我会带你<strong style="color: #1a73e8;">从零开始，一步步安装和配置 OpenClaw</strong>。<br />
+小白也能跟着做，保姆级教程。
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+一、OpenClaw 是什么？
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+简单来说，OpenClaw 是一个<strong style="color: #1a73e8;">私人 AI 助手的中枢大脑</strong>。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+它的核心是一个 Gateway（网关），<br />
+跑在你自己的电脑或服务器上，<br />
+同时连接多个聊天渠道：WhatsApp、Telegram、Discord、iMessage、Slack、微信（飞书）等等。<br />
+你在任何一个平台给它发消息，它就调用 AI 模型帮你处理。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+几个核心特点：
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🏠 <strong>自托管</strong>：数据在你自己的机器上，隐私你说了算<br />
+📱 <strong>多渠道</strong>：一个网关同时服务 WhatsApp、Telegram、Discord 等<br />
+🤖 <strong>Agent 原生</strong>：支持工具调用、会话管理、多代理路由<br />
+🔓 <strong>MIT 开源</strong>：完全免费，社区驱动<br />
+⚡ <strong>5 分钟上手</strong>：只需要 Node.js 22+ 和一个 API Key
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+二、安装前准备
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>系统要求：</strong><br />
+✅ macOS、Linux 或 Windows（推荐 WSL2）<br />
+✅ Node.js 22 或更高版本<br />
+✅ 一个 AI 模型的 API Key（推荐 Anthropic Claude）
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>检查 Node.js 版本：</strong><br />
+打开终端，输入：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+node --version
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+如果显示 v22.x.x 或更高，就没问题。<br />
+如果没装或版本太低，继续往下看。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>安装 Node.js：</strong>
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🍎 <strong>macOS</strong>：<br />
+用 Homebrew 安装最简单：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+brew install node
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🐧 <strong>Linux (Ubuntu/Debian)</strong>：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -<br />
+sudo apt-get install -y nodejs
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🪟 <strong>Windows</strong>：<br />
+用 winget 一条命令：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+winget install OpenJS.NodeJS.LTS
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+也可以直接去 <strong>nodejs.org</strong> 下载安装包。
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+三、安装 OpenClaw
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+OpenClaw 提供了多种安装方式，<br />
+我按推荐程度排列，<strong style="color: #1a73e8;">第一种最简单，适合大多数人</strong>。
+</p>
+
+<h2 style="font-size: 18px; font-weight: bold; color: #333; margin: 25px 0 12px 0;">
+方式一：一键安装脚本（推荐 ⭐）
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🍎🐧 <strong>macOS / Linux / WSL2</strong>：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+curl -fsSL https://openclaw.ai/install.sh | bash
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🪟 <strong>Windows (PowerShell)</strong>：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+iwr -useb https://openclaw.ai/install.ps1 | iex
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+这个脚本会自动检测 Node.js、安装 OpenClaw CLI，<br />
+并启动引导向导（Onboarding Wizard）。<br />
+<strong style="color: #1a73e8;">整个过程一条命令搞定</strong>，非常省心。
+</p>
+
+<h2 style="font-size: 18px; font-weight: bold; color: #333; margin: 25px 0 12px 0;">
+方式二：npm 手动安装
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+如果你已经有 Node.js 22+，可以直接用 npm：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+npm install -g openclaw@latest<br />
+openclaw onboard --install-daemon
+</p>
+
+<h2 style="font-size: 18px; font-weight: bold; color: #333; margin: 25px 0 12px 0;">
+方式三：从源码安装
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+适合开发者或想要最新功能的人：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+git clone https://github.com/openclaw/openclaw.git<br />
+cd openclaw<br />
+pnpm install<br />
+pnpm ui:build<br />
+pnpm build<br />
+pnpm link --global
+</p>
+
+<h2 style="font-size: 18px; font-weight: bold; color: #333; margin: 25px 0 12px 0;">
+方式四：Docker 安装
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+如果你喜欢容器化部署：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+git clone https://github.com/openclaw/openclaw.git<br />
+cd openclaw<br />
+./docker-setup.sh
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+脚本会自动构建镜像、运行引导向导、启动网关。
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+四、引导配置（Onboarding Wizard）
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+安装完成后，OpenClaw 会自动启动引导向导。<br />
+如果没有自动启动，手动运行：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+openclaw onboard --install-daemon
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+向导会带你完成以下配置：
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>① 选择 AI 模型和认证方式</strong><br />
+推荐使用 Anthropic API Key（Claude 系列模型）。<br />
+也支持 OpenAI、Gemini、xAI Grok、Moonshot 等。<br />
+向导会提示你输入 API Key。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>② 工作区设置</strong><br />
+默认在 <strong>~/.openclaw/workspace</strong>。<br />
+这里存放 AI 的记忆、指令、技能文件等，<br />
+建议做成 Git 仓库备份。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>③ 网关（Gateway）设置</strong><br />
+端口默认 18789，绑定方式推荐 loopback（本地访问）。<br />
+会生成一个 Token 用于认证。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>④ 聊天渠道配置</strong><br />
+选择你要连接的平台：WhatsApp、Telegram、Discord 等。<br />
+WhatsApp 需要扫 QR 码，Telegram 只需 Bot Token。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>⑤ 守护进程安装</strong><br />
+让 OpenClaw 作为系统服务自动运行。<br />
+macOS 用 LaunchAgent，Linux 用 systemd。
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+五、启动和验证
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+配置完成后，检查网关状态：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+openclaw gateway status
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+打开浏览器控制面板：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+openclaw dashboard
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+会自动打开 <strong>http://127.0.0.1:18789/</strong>。<br />
+<strong style="color: #1a73e8;">如果控制面板能正常加载，说明网关已经成功运行了！</strong>
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+你可以直接在浏览器里和 AI 对话，<br />
+不需要任何额外的渠道配置。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+其他常用命令：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+openclaw doctor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 检查配置问题<br />
+openclaw status &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 查看网关状态<br />
+openclaw health &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; # 健康检查<br />
+openclaw logs --follow &nbsp;# 查看实时日志
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+六、连接聊天渠道
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+OpenClaw 支持的渠道非常多，这里讲几个最常用的。
+</p>
+
+<h2 style="font-size: 18px; font-weight: bold; color: #333; margin: 25px 0 12px 0;">
+📱 WhatsApp
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+推荐用一个<strong>专门的手机号</strong>（第二张 SIM 卡或虚拟号）<br />
+作为 AI 助手的 WhatsApp 号码。
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+openclaw channels login
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+会弹出一个 QR 码，<br />
+用助手手机上的 WhatsApp 扫码即可。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+然后在配置文件 <strong>~/.openclaw/openclaw.json</strong> 中设置允许名单：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+{<br />
+&nbsp;&nbsp;"channels": {<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"whatsapp": {<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"allowFrom": ["+8613800138000"]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;}<br />
+&nbsp;&nbsp;}<br />
+}
+</p>
+
+<h2 style="font-size: 18px; font-weight: bold; color: #333; margin: 25px 0 12px 0;">
+✈️ Telegram
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+Telegram 是最简单的渠道，<br />
+只需要一个 Bot Token：
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+1. 在 Telegram 找 @BotFather<br />
+2. 发 /newbot 创建机器人<br />
+3. 拿到 Bot Token<br />
+4. 在向导中填入，或手动写入配置
+</p>
+
+<h2 style="font-size: 18px; font-weight: bold; color: #333; margin: 25px 0 12px 0;">
+🎮 Discord
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+1. 去 Discord Developer Portal 创建 Application<br />
+2. 创建 Bot，获取 Token<br />
+3. 邀请 Bot 到你的服务器<br />
+4. 在向导中填入 Token
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>其他支持的渠道还有：</strong><br />
+Slack、Signal、iMessage（BlueBubbles）、飞书、Google Chat、<br />
+Mattermost、IRC、Microsoft Teams、LINE、Matrix 等等。
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+七、核心配置详解
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+所有配置都在 <strong>~/.openclaw/openclaw.json</strong> 文件里。<br />
+这里给一个完整的示例配置：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+{<br />
+&nbsp;&nbsp;"agent": {<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"model": "anthropic/claude-opus-4-6",<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"workspace": "~/.openclaw/workspace",<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"heartbeat": { "every": "30m" }<br />
+&nbsp;&nbsp;},<br />
+&nbsp;&nbsp;"channels": {<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"whatsapp": {<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"allowFrom": ["+8613800138000"]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;},<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"telegram": {<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"botToken": "YOUR_BOT_TOKEN"<br />
+&nbsp;&nbsp;&nbsp;&nbsp;}<br />
+&nbsp;&nbsp;},<br />
+&nbsp;&nbsp;"session": {<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"scope": "per-sender",<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"resetTriggers": ["/new", "/reset"]<br />
+&nbsp;&nbsp;}<br />
+}
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>关键配置项说明：</strong>
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🧠 <strong>agent.model</strong>：选择默认 AI 模型<br />
+📁 <strong>agent.workspace</strong>：工作区路径<br />
+💓 <strong>agent.heartbeat</strong>：心跳间隔，AI 定时主动巡检<br />
+📱 <strong>channels</strong>：各渠道的配置<br />
+🔄 <strong>session.resetTriggers</strong>：发 /new 重置对话
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+八、工作区与记忆系统
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+OpenClaw 有一个很酷的设计：<br />
+<strong style="color: #1a73e8;">AI 通过 Markdown 文件来记忆和学习</strong>。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+工作区（默认 ~/.openclaw/workspace）里有几个核心文件：
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+📋 <strong>AGENTS.md</strong> — AI 的操作指南，定义行为规范<br />
+🧬 <strong>SOUL.md</strong> — AI 的人格和身份<br />
+👤 <strong>USER.md</strong> — 关于你（用户）的信息<br />
+🔧 <strong>TOOLS.md</strong> — 工具和设备的本地笔记<br />
+📝 <strong>memory/</strong> — 每日记忆文件<br />
+🧠 <strong>MEMORY.md</strong> — 长期记忆精华
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+你可以编辑这些文件来<strong>调教你的 AI 助手</strong>，<br />
+让它更懂你的需求和习惯。
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+九、多平台部署方案
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+OpenClaw 不只能跑在本地电脑上，<br />
+你也可以部署到各种平台实现 24/7 在线：
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🖥️ <strong>个人电脑</strong> — macOS / Windows / Linux 都行<br />
+☁️ <strong>云服务器</strong> — 支持 Hetzner、GCP、Fly.io、exe.dev 等<br />
+🐳 <strong>Docker</strong> — 容器化部署，适合服务器<br />
+🏠 <strong>Home Assistant</strong> — 有社区插件<br />
+❄️ <strong>Nix</strong> — 声明式安装，可复现<br />
+🤖 <strong>Ansible</strong> — 自动化批量部署
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+配套的客户端 App：<br />
+📱 iOS App、Android App、macOS App 都有。<br />
+可以作为 Node 节点连接到你的 Gateway，<br />
+实现拍照、定位、语音等功能。
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+十、常见问题 FAQ
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>Q：openclaw 命令找不到？</strong><br />
+A：多半是 PATH 问题。运行 <strong>npm prefix -g</strong> 查看全局安装路径，<br />
+确保该路径的 bin 目录在你的 PATH 里。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>Q：npm install 报权限错误？</strong><br />
+A：Linux 上常见。切换 npm 全局安装目录：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+mkdir -p "$HOME/.npm-global"<br />
+npm config set prefix "$HOME/.npm-global"<br />
+export PATH="$HOME/.npm-global/bin:$PATH"
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>Q：WhatsApp 扫码总失败？</strong><br />
+A：确保是在助手手机上扫码，不是你自己的手机。<br />
+建议用一个专门的号码。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>Q：如何更新 OpenClaw？</strong><br />
+A：推荐重新运行安装脚本（会自动升级）：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+curl -fsSL https://openclaw.ai/install.sh | bash
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+或者手动更新：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+npm i -g openclaw@latest<br />
+openclaw doctor<br />
+openclaw gateway restart
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>Q：如何卸载？</strong><br />
+A：一条命令：
+</p>
+
+<p style="font-size: 15px; line-height: 1.8; color: #555; margin: 15px 0; padding: 15px; background: #f6f8fa; border-radius: 6px; font-family: 'Courier New', monospace;">
+openclaw uninstall --all --yes
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+<strong>Q：在 Windows 上需要 WSL 吗？</strong><br />
+A：强烈推荐使用 WSL2。<br />
+原生 Windows 也能跑，但 WSL2 兼容性更好。
+</p>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+<h2 style="font-size: 20px; font-weight: bold; color: #333; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+写在最后
+</h2>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+OpenClaw 的理念很简单：<br />
+<strong style="color: #1a73e8;">你的助手，你的机器，你的规则。</strong>
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+它把 AI 助手从云端拉回到你自己手里，<br />
+数据不需要经过任何第三方服务器，<br />
+你完全掌控一切。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+而且社区非常活跃，<br />
+已经有人用它做了各种有意思的事：<br />
+自动点外卖、3D 打印机控制、维也纳交通查询、<br />
+Oura 智能戒指健康助手、Jira 自动化……
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+如果你也想拥有一个随时待命的 AI 私人助手，<br />
+现在就动手试试吧。
+</p>
+
+<p style="font-size: 16px; line-height: 2; color: #333; margin: 15px 0; text-align: justify;">
+🦞 官方网站：<strong>openclaw.ai</strong><br />
+📖 官方文档：<strong>docs.openclaw.ai</strong><br />
+🐙 GitHub：<strong>github.com/openclaw/openclaw</strong><br />
+🐦 Twitter：<strong>@openclaw</strong><br />
+💬 Discord：<strong>discord.gg/clawd</strong>
+</p>
+
+</section>

@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "profiles": {
+    "anthropic:default": {
+      "type": "api_key",
+      "provider": "anthropic",
+      "key": "cr_eb89f155a7726feb8c529c9ce9b26a71109921b2a749fabb48c6977df548947e"
+    },
+    "qwen-portal:default": {
+      "type": "oauth",
+      "provider": "qwen-portal",
+      "access": "rGPPxxPh7bg4tZWq3wqg4jkrODdVKmOBThNBm_aYqGY2MryB68tJz1AUuKOSrkSgZiDOT0wNzxLN--kE48WToA",
+      "refresh": "ZJmwtcj6W7l6Dg0gzuomcXdDnZtGMgG1BqFxLQzwIRltC9tatVaNoCiJr50XOcndSEVEz2QQlLXH1SRTPqkuyg",
+      "expires": 1770383290233
+    },
+    "zai:default": {
+      "type": "api_key",
+      "provider": "zai",
+      "key": "747a4e06897b43849bd2855490743000.yOYwYJEngbE4hHVa"
+    },
+    "openai-codex:default": {
+      "type": "oauth",
+      "provider": "openai-codex",
+      "access": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE5MzQ0ZTY1LWJiYzktNDRkMS1hOWQwLWY5NTdiMDc5YmQwZSIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSJdLCJjbGllbnRfaWQiOiJhcHBfRU1vYW1FRVo3M2YwQ2tYYVhwN2hyYW5uIiwiZXhwIjoxNzcxNjkyOTMwLCJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsiY2hhdGdwdF9hY2NvdW50X2lkIjoiYTA2NTVkZDgtZmFhYS00YWI2LWIxNWQtNDhkNThhNjRkOTFmIiwiY2hhdGdwdF9hY2NvdW50X3VzZXJfaWQiOiJ1c2VyLVhpZnZCQUdKRVdwZ0N2ZVo1ZmdtbG1wRV9fYTA2NTVkZDgtZmFhYS00YWI2LWIxNWQtNDhkNThhNjRkOTFmIiwiY2hhdGdwdF9jb21wdXRlX3Jlc2lkZW5jeSI6Im5vX2NvbnN0cmFpbnQiLCJjaGF0Z3B0X3BsYW5fdHlwZSI6InBsdXMiLCJjaGF0Z3B0X3VzZXJfaWQiOiJ1c2VyLVhpZnZCQUdKRVdwZ0N2ZVo1ZmdtbG1wRSIsInVzZXJfaWQiOiJ1c2VyLVhpZnZCQUdKRVdwZ0N2ZVo1ZmdtbG1wRSJ9LCJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJ5YW8yMDIzMDEwMUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sImlhdCI6MTc3MDgyODkyOSwiaXNzIjoiaHR0cHM6Ly9hdXRoLm9wZW5haS5jb20iLCJqdGkiOiJmZDg1NTU4Zi01ZTlhLTRmNjctODc2MS1iYmEwODQ0OTdkMjAiLCJuYmYiOjE3NzA4Mjg5MjksInB3ZF9hdXRoX3RpbWUiOjE3NzA4Mjg5Mjc2OTgsInNjcCI6WyJvcGVuaWQiLCJwcm9maWxlIiwiZW1haWwiLCJvZmZsaW5lX2FjY2VzcyJdLCJzZXNzaW9uX2lkIjoiYXV0aHNlc3NfQUpzdkdZNzFJejdCdDJnZ2ZXZnpHeTJIIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwxMTE0MDYxNzQ4MTQ1NDU5ODgxNjcifQ.IVUDO-h4bYCB9NnZtKuqRT63rfmPdUNGELFgWJrtOJqF-uCZPoK49p9LcnqzUcyGgTF9dLEWxDdqnYxy2f9_0B0kHlp1qCbFeg8MAEmIGEaPajC-4qQFpuuPVkQya3UEfn9abxX-7tk7Crg0eCOwCwfgOCpXeQx9yEr-6Jez4OUWHnKGEs6mY98tnhxxqmHi_DimCEJbON-BM5TdvguGBw0UM2LVHEHgx0JPonRFfG7EhtccI1ngI2iiKRZuihVxTTFdX3_Z5eCxId8alYbXcbxNQ6niqmhXGzXjZw1dxfLXjKJmzQJ4yeD9I_AKSX_LQToJ2gryMsYk-aiKE1DHQlM5olsw0VSw0wd3kBmf2uC70EBinuIkQ3bsgfK_yNskP8b0IV3sUKwtxmdEpdF1YogS6o_gbTLNzhXj81MUv8Z-wHeTN06j1Tz5NVO8iTTgi28Em82gmF2LLFnTa45PDSoNvaDLPQwjUWg41guN2E_Srk0jJ7xoR-8UBwQJ_q7REgoY47CWG2TMPB2_xpiKvxDZGh8oaCJ9Is8qzmJsa073-ZVfXQtyphWc1LPQSCiH2qjfoxQjH6GnaLldg7Exaqwj2ADT3XCQRGZEcBAABSI4Nf_bG-AfCD1mbeq8ZRM2rEXC-qy8PNg4_EU0svOS6jMRC4JqHCJoiLWz3oqZ23I",
+      "refresh": "rt_NSIDLyuutTZ9BsBqWMPfoVrPWOsSmEIraAkJr7hcYAc.sLdQkKShiBufBVYkSDXgVf3qM328ZU5jv7ZSS6cHkdo",
+      "expires": 1771692928820,
+      "accountId": "a0655dd8-faaa-4ab6-b15d-48d58a64d91f"
+    }
+  },
+  "lastGood": {
+    "anthropic": "anthropic:default",
+    "qwen-portal": "qwen-portal:default",
+    "zai": "zai:default"
+  },
+  "usageStats": {
+    "anthropic:default": {
+      "lastUsed": 1771010332900,
+      "errorCount": 0,
+      "lastFailureAt": 1770999401642
+    },
+    "qwen-portal:default": {
+      "lastUsed": 1770128994301,
+      "errorCount": 4,
+      "failureCounts": {
+        "auth": 4
+      },
+      "lastFailureAt": 1770361690494,
+      "cooldownUntil": 1770365290494
+    },
+    "zai:default": {
+      "lastUsed": 1770395745409,
+      "errorCount": 0,
+      "lastFailureAt": 1770296249908
+    }
+  }
+}

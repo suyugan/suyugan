@@ -116,5 +116,25 @@ def main():
     if not result.get("success"):
         sys.exit(1)
 
+    # Auto free-publish if requested
+    if config.get("auto_publish", False) and result.get("success"):
+        media_id = result.get("data", {}).get("mediaId")
+        if media_id:
+            print("\n--- Auto Free Publish ---")
+            try:
+                from free_publish import get_access_token, free_publish as do_free_publish
+                appid = config.get("appid", "wx9a447fddc9ba6a59")
+                appsecret = config.get("appsecret", "REDACTED_WECHAT_SECRET")
+                token = get_access_token(appid, appsecret)
+                pub_result = do_free_publish(token, media_id)
+                print(json.dumps(pub_result, indent=2, ensure_ascii=False))
+                if pub_result.get("errcode", 0) == 0:
+                    print(f"\n✅ 已自动提交发布！publish_id: {pub_result.get('publish_id')}")
+                else:
+                    print(f"\n❌ 自动发布失败: {pub_result.get('errmsg')}", file=sys.stderr)
+            except Exception as e:
+                print(f"\n❌ 自动发布出错: {e}", file=sys.stderr)
+                print("文章已在草稿箱，可手动发布或用 free_publish.py 发布")
+
 if __name__ == "__main__":
     main()

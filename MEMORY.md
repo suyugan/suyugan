@@ -22,6 +22,9 @@ This file stores distilled learnings, important decisions, and crucial context t
 - AI 视频生成（即梦AI）
 - 微信群消息采集
 
+## 发布规则
+- **「发布推文」= 发布到微信公众号「苏煜淦」**（所有频道生效，2026-02-14起）
+
 ## 苏总习惯与要求
 - 账号密码双重存储：本地 + 腾讯云 `/home/ubuntu/.credentials/accounts.md`
 - 需要账号密码先SSH服务器查，没有再问苏总

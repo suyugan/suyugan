@@ -100,11 +100,26 @@ Common errors and solutions:
 - **NO_IMAGES**: For newspic, must provide coverImage or mainImages
 - **INVALID_PARAMETER**: Check title length (≤64 chars), content format, and required fields
 
+## Auto-Publish (Direct Publish, Not Just Draft)
+
+By default, `publish_article.py` only saves to draft box. To auto-publish:
+
+1. Add `"auto_publish": true` to the JSON config
+2. The script will: save to draft → get media_id → call WeChat freepublish API → submit for publishing
+
+Or manually after getting media_id:
+```bash
+python scripts/free_publish.py <media_id>
+```
+
+**Note**: Free publish uses WeChat official API with AppID/AppSecret (hardcoded for 苏煜淦 account). The publish is async — WeChat processes it and the article goes live within minutes.
+
 ## Resources
 
 ### scripts/
 - `list_accounts.py`: Fetch all authorized WeChat accounts
-- `publish_article.py`: Publish article to specified account
+- `publish_article.py`: Publish article to specified account (supports auto_publish)
+- `free_publish.py`: Submit draft to free publish via WeChat official API
 
 ### references/
 - `api_docs.md`: Complete API documentation with examples and error codes

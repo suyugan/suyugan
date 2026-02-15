@@ -88,6 +88,10 @@
     "web-search-plus": {
       "version": "2.6.5",
       "installedAt": 1770834065218
+    },
+    "douyin-publish": {
+      "version": "1.0.0",
+      "installedAt": 1771196243886
     }
   }
 }

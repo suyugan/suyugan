@@ -18,6 +18,11 @@
       "provider": "zai",
       "key": "747a4e06897b43849bd2855490743000.yOYwYJEngbE4hHVa"
     },
+    "google:default": {
+      "type": "api_key",
+      "provider": "google",
+      "key": "REDACTED_GEMINI_KEY"
+    },
     "openai-codex:default": {
       "type": "oauth",
       "provider": "openai-codex",
@@ -34,7 +39,7 @@
   },
   "usageStats": {
     "anthropic:default": {
-      "lastUsed": 1771010332900,
+      "lastUsed": 1771142406237,
       "errorCount": 0,
       "lastFailureAt": 1770999401642
     },

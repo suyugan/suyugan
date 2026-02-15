@@ -58,6 +58,8 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 
 这样可以并行处理多个任务，不会阻塞主会话。
 
+**⚠️ 同一任务只回复一条消息！** 不要先发"收到"再发"已安排"，合并成一条发。避免刷屏。
+
 ## 语言
 - **所有回复、子代理汇报、Discord消息一律用中文**
 - spawn 子代理时在 task 里注明：「所有输出用中文」

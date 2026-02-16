@@ -117,13 +117,15 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
 |------|------|---------|
 | **配图口播** | 封面为插画/图片，无真人出镜，1-3分钟 | 标准流程（阶段二~七） |
 | **混剪** | 多素材拼接，3-10分钟，封面为影视/纪录片截图 | 走混剪流程 |
-| **真人出镜** | 封面有真人，vlog/口播类标签 | ⚠️ 建议转为配图模式复刻 |
-| **实拍** | 封面为实景照片，生活/旅行/美食类标签 | 根据具体情况选择配图或混剪流程 |
+| **真人出镜** | 封面有真人，vlog/口播类标签 | 自动转为配图口播模式（抄内容风格，不抄真人） |
+| **实拍** | 封面为实景照片，生活/旅行/美食类标签 | 自动转为配图口播模式 |
+| **视频模式** | 博主使用AI视频/动态画面，非静态配图 | 走阶段5.1b即梦视频生成流程 |
 
-3. **真人出镜类特殊处理**：
-   - 自动输出建议：「该博主为真人出镜类型，建议转为配图口播模式复刻」
-   - 原因：AI无法生成一致的真人形象，强行复刻会导致人物不统一、辨识度低
-   - 用户确认后，按配图口播流程执行
+3. **真人出镜/实拍类自动转换**：
+   - **不需要询问用户，直接自动转为配图口播模式**
+   - 复刻的是内容风格（文案结构、选题方向、叙事节奏），不是真人形象
+   - 配图风格：根据视频内容主题自动选择合适的AI插画风格（如历史题材用古风绘画、情感题材用治愈插画等）
+   - 转换时告知用户一句：「该博主为真人出镜，已自动转为AI配图模式，复刻内容风格」
 
 4. **写入 style_template.json**：
 ```json
@@ -140,6 +142,7 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
    - `混剪` → 混剪视频复刻流程
    - `真人出镜` → 提示用户确认后走配图口播流程
    - `实拍` → 提示用户选择配图或混剪
+   - `视频模式` → 阶段5.1b即梦视频生成 + ffmpeg拼接
 
 ---
 
@@ -401,11 +404,26 @@ python scripts/transcribe.py -d . -m medium
     {
       "scene_num": 1,
       "text": "对应的文案片段内容...",
-      "prompt": "帮我生成图片：...\n背景：...\n风格：...\n氛围：...\n构图：...。比例 X:X。"
+      "prompt": "帮我生成图片：...\n背景：...\n风格：...\n氛围：...\n构图：...。比例 X:X。",
+      "video_mode": "t2v",
+      "video_mode_reason": "大场景航拍，无需精确控制"
+    },
+    {
+      "scene_num": 2,
+      "text": "对应的文案片段内容...",
+      "prompt": "...",
+      "video_mode": "i2v",
+      "video_mode_reason": "需要精确的人物表情特写"
     }
   ]
 }
 ```
+
+> **video_mode 字段说明**（仅当 content_type 为「视频模式」时需要）：
+> - `"t2v"`：纯文生视频，直接用prompt生成视频
+> - `"i2v"`：图生视频，先生图再用图作为首帧生成视频
+> - `video_mode_reason`：选择该模式的理由，便于调试和人工审核
+> - 如果 content_type 不是视频模式（即配图口播），此字段可省略
 
 **提示词格式**（必须严格按此结构）：
 ```
@@ -515,6 +533,145 @@ message({ action: "send", message: "🎨 即梦生图进度 X/Y，预览几张�
 ```
 - 预览不阻塞生图流程，发完继续下一张
 - 如果用户反馈风格不对，暂停生图等指示
+
+### 5.1b AI视频生成（即梦视频模式 — 当 content_type 为「视频模式」或混剪时可选）
+
+**当 style_template.json 中 content_type 为「视频模式」时，改用即梦视频生成替代静态图片。**
+
+#### 双模式自动选择规则
+
+每个场景根据内容自动选择生成方式：
+
+**模式A：纯文生视频（text-to-video, t2v）**
+适用场景：
+- 大场景/风景/航拍（如"古代皇宫全景"、"战场远景"）
+- 抽象概念/特效（如"时间流逝"、"数据可视化"）
+- 动物/自然场景（如"猫在草地奔跑"）
+流程：直接用文字提示词生成5秒视频
+
+**模式B：图生视频（image-to-video, i2v）**
+适用场景：
+- 需要精确人物形象/表情的场景
+- 需要特定构图/画面元素精确控制的场景
+- 需要与前后场景保持人物一致性的场景
+流程：先用即梦生图（已有流程5.1）→ 用生成的图作为首帧 → 即梦图生视频
+
+**自动选择逻辑：**
+AI在拆分场景时（阶段四），为每个场景标注 `video_mode: "t2v"` 或 `"i2v"`，写入prompts.json（见阶段四的prompts.json格式）。
+
+**图生视频（i2v）的API调用：**
+基于现有即梦视频生成接口，图生视频的 `draft_content` 中需要额外传入首帧图片URL。在 `video_gen_inputs` 中增加image相关参数：
+```json
+{
+  "video_gen_inputs": [
+    {
+      "prompt": "场景描述",
+      "first_frame_image": "<首帧图片URL>",
+      "generation_mode": "i2v"
+    }
+  ]
+}
+```
+> ⚠️ 具体字段名（如 `first_frame_image`、`generation_mode`）待抓包确认，以上为占位说明。确认后更新 `jimeng_video_gen.py` 脚本支持 `--image` 参数。
+
+**i2v模式执行流程：**
+```
+1. 读取场景的 video_mode 字段
+2. 如果 video_mode == "i2v"：
+   a) 先用即梦生图流程（5.1）生成该场景的静态图
+   b) 用生成的图片URL作为首帧，调用即梦图生视频接口
+   c) 轮询等待视频生成完成
+3. 如果 video_mode == "t2v"：
+   a) 直接用文字提示词调用即梦视频生成接口（现有流程）
+```
+
+**标准脚本路径：** `D:\video-analysis\scripts\jimeng_video_gen.py`
+
+**与图片生成的区别：**
+- 使用即梦视频生成API（同一个 aigc_draft/generate 端口，但 draft_content 结构不同）
+- 轮询接口不同：视频用 `get_history_queue_info`（图片用 `get_history_by_ids`）
+- 轮询用 `history_id`（数字ID，从提交响应获取），不是 `submit_id`
+- 每个场景生成5秒视频片段，最后用 ffmpeg concat 拼接
+
+**逐步调用流程：**
+```
+步骤1：获取即梦tab
+  browser({ action: "tabs", profile: "openclaw", target: "host" })
+  → 找到 url 包含 jimeng.jianying.com 的tab，记下 targetId
+
+步骤2：加载MD5签名（如未加载）
+  cmd /c "python D:\video-analysis\scripts\jimeng_video_gen.py --action md5 --json"
+  → 取出js，browser evaluate执行
+
+步骤3：逐个场景生成视频（循环）
+  对每个场景：
+
+  3a. 生成提交JS代码：
+      cmd /c "chcp 65001 >nul & python D:\video-analysis\scripts\jimeng_video_gen.py --action generate --prompt "场景描述" --ratio "16:9" --duration 5 --resolution 720p --json"
+      → 输出JSON：{"js": "...", "submit_id": "xxx"}
+
+  3b. 在即梦页面执行提交JS：
+      browser evaluate → 返回 {ret, errmsg, submit_id, history_id, data}
+      ⚠️ 必须记录 history_id（数字），后续轮询用！
+      如果 history_id 为空，从 data 中深层查找
+
+  3c. 等待5秒
+
+  3d. 生成轮询JS代码（推荐用 poll-full 一体化轮询）：
+      python jimeng_video_gen.py --action poll-full --history-id "<history_id>" --json
+      → 输出JS：自动查队列状态，完成后用get_history_by_ids获取视频URL
+
+  3e. 间隔30秒轮询（视频生成较慢！），直到返回 status=done：
+      → 返回 {status:"done", videos:[{video_url, cover_url, duration, width, height}]}
+      → 超时300秒放弃该场景
+
+  3f. 下载视频：
+      curl -o videos/scene_XX.mp4 "<video_url>"
+
+  3g. 每3个场景发一次进度更新
+```
+
+**所有片段生成后，ffmpeg拼接：**
+```bash
+# 1. 创建 concat 清单
+echo "file 'videos/scene_01.mp4'" > concat_list.txt
+echo "file 'videos/scene_02.mp4'" >> concat_list.txt
+# ...
+
+# 2. 拼接所有片段
+ffmpeg -y -f concat -safe 0 -i concat_list.txt -c copy video_only.mp4
+
+# 3. 后续流程不变：混合TTS+BGM音频，烧录字幕
+```
+
+**注意事项：**
+- 视频生成比图片慢很多（可能1-3分钟/个），轮询间隔建议30秒
+- 每次生成1个视频（不像图片一次生成4张）
+- 模型默认 fast（vgfm_3.0_fast），可选 standard（vgfm_3.0，更慢但质量更高）
+- 视频分辨率默认720p，可选1080p
+
+**视频模式子代理spawn模板：**
+```
+sessions_spawn({
+  label: "{主题}-视频制作(视频模式)",
+  task: `复刻「{博主名}」风格，制作主题「{主题}」的抖音视频（视频模式）。所有输出用中文。
+
+必须先读取技能文档：skills/douyin-clone/SKILL.md，严格按流程执行。
+工作目录：D:\\video-analysis\\output\\{主题}\\
+
+该博主为视频模式，使用即梦视频生成（非图片）：
+1. 读取 prompts.json，检查每个场景的 video_mode 字段
+2. 根据 video_mode 选择生成方式：
+   - video_mode == "t2v"：直接用文字提示词生成视频（现有流程）
+   - video_mode == "i2v"：先用即梦生图（5.1流程）生成静态图 → 再用图作为首帧调用图生视频接口
+3. 使用脚本：python D:\\video-analysis\\scripts\\jimeng_video_gen.py
+4. 提交→记录history_id→轮询（30秒间隔）→下载视频
+5. ffmpeg concat拼接所有片段
+6. TTS配音 + BGM混音（与视频生成并行）
+7. 字幕烧录
+8. 上传腾讯云 → 交付高清链接`
+})
+```
 
 #### 5.1.1 生成质量校验
 

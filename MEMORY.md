@@ -63,6 +63,14 @@ This file stores distilled learnings, important decisions, and crucial context t
 - 搜索引擎：Tavily（key: REDACTED_TAVILY_KEY）
 - topic-monitor已修复Windows兼容（python3→python, encoding=utf-8, 系统环境变量）
 
+### 视频合成注意事项
+- Windows + FFmpeg + 中文路径 = concat乱码，**文件夹一律用英文/拼音命名**
+- 即梦API生图：req_key=jimeng_t2i_v40, 3840x2160
+- 视频合成必须加 `movflags+faststart`，至少25张图
+
+### 小红书MCP
+- Docker部署，端口18060，MCP endpoint `/mcp`，需扫码登录
+
 ### 子代理任务规则
 - **任务失败必须立即通知用户！不能静默失败！**
 - 定期检查子代理状态（每5-10分钟）

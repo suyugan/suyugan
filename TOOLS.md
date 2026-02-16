@@ -60,6 +60,7 @@ Add whatever helps you do your job. This is your cheat sheet.
 
 - **Skill文档**: `skills/jimeng-fetch/SKILL.md`
 - **JS生成脚本**: `D:\video-analysis\scripts\jimeng_fetch_gen.py`
+- **视频生成脚本**: `D:\video-analysis\scripts\jimeng_video_gen.py`
 - **批量脚本**: `D:\video-analysis\scripts\jimeng_batch_fetch.py`
 - **前置条件**: openclaw浏览器中即梦网页版已登录
 - **browser参数**: `profile="openclaw", target="host"`

@@ -47,7 +47,7 @@ def submit_task(ak, sk, prompt, width=1080, height=1920):
             "logo_info": {"add_logo": False},
         }
 
-        resp = visual_service.cv_sync2_async_submit_task(form)
+        resp = visual_service.cv_sync2async_submit_task(form)
         if resp and resp.get("code") == 10000:
             task_id = resp.get("data", {}).get("task_id", "")
             return task_id
@@ -72,7 +72,7 @@ def poll_task(ak, sk, task_id, max_wait=120):
             "req_key": "jimeng_t2i_v40",
             "task_id": task_id,
         }
-        resp = visual_service.cv_sync2_async_get_result(form)
+        resp = visual_service.cv_sync2async_get_result(form)
         if resp and resp.get("code") == 10000:
             data = resp.get("data", {})
             status = data.get("status", "")

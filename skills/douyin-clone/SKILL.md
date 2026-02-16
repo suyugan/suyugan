@@ -178,6 +178,8 @@ python scripts/compose_video.py -i images -n narration.mp3 -b bgm.mp3 -o final.m
 
 **⚠️ FFmpeg输出必须加 `-movflags +faststart`，让视频支持浏览器流式播放，不加就是低级错误！**
 
+**⚠️ 音频必须一整条录制，不要分段！** TTS把全部文案一次性生成一条完整音频，然后按时间点切换图片。分段拼接会导致衔接处断裂、最后一个字听不清。
+
 **⚠️ 图片数量规则：每段文案至少配2-3张不同角度的图，总数不少于25张。11张太少！**
 
 **⚠️ 人物一致性：如果博主讲中国古代史，所有prompt必须写明"中国古代人物"，negative必须加"外国人，西方人"。风格模板(style_positive)必须拼接到每个prompt。**
@@ -211,6 +213,133 @@ xfade=transition=fade:duration=0.5:offset=30
 - 从文案结构提取章节标题和对应时间点
 - 在发布页面「扩展信息 → 视频章节」中添加
 - 抖音会自动生成进度条，显示在视频画面外面
+
+## 混剪视频复刻流程（对标账号为视频混剪风格时）
+
+当对标博主不是配图模式而是混剪视频时，使用以下流程：
+
+### 1. 下载原视频并分析
+```python
+# 通过视频分析API下载
+import requests
+r = requests.get('http://localhost:18810/api/hybrid/video_data', 
+    params={'url': '抖音视频链接'}, timeout=30)
+data = r.json()['data']
+video_url = data['video']['play_addr']['url_list'][0]
+music_url = data['music']['play_url']['url_list'][0]
+# 下载视频和BGM
+```
+
+### 2. 逐镜头拆解
+```bash
+# ffmpeg 按场景切换点抽帧
+ffmpeg -i video.mp4 -vf "select=gt(scene,0.3)" -vsync vfr frames/scene_%04d.png
+```
+- AI 分析每帧：场景内容、镜头类型（特写/全景/航拍）、运动方式、时长
+- 输出镜头清单 JSON：每个镜头的时间点、内容描述、运镜方式
+
+### 3. BGM提取与缓存
+
+**首次制作视频时提取BGM，保存后二次复用：**
+
+```python
+# 步骤1：从抖音API获取原始音频
+music_url = data['music']['play_url']['url_list'][0]
+# 下载保存到 D:\video-analysis\{博主名}\bgm_raw.mp3
+
+# 步骤2：ffmpeg 转 wav
+# ffmpeg -y -i bgm_raw.mp3 -ar 44100 -ac 2 bgm_raw.wav
+
+# 步骤3：demucs 分离人声和BGM
+import soundfile as sf, torch
+from demucs.pretrained import get_model
+from demucs.apply import apply_model
+
+model = get_model('htdemucs')
+model.eval()
+data, sr = sf.read('bgm_raw.wav')
+wav = torch.from_numpy(data.T).float()
+
+# resample if needed (model.samplerate = 44100)
+if sr != model.samplerate:
+    ratio = model.samplerate / sr
+    new_len = int(wav.shape[1] * ratio)
+    wav = torch.nn.functional.interpolate(
+        wav.unsqueeze(0), size=new_len, mode='linear', align_corners=False
+    ).squeeze(0)
+    sr = model.samplerate
+
+ref = wav.mean(0)
+wav_n = (wav - ref.mean()) / ref.std()
+sources = apply_model(model, wav_n[None], device='cpu', progress=True)[0]
+sources = sources * ref.std() + ref.mean()
+
+names = model.sources  # ['drums', 'bass', 'other', 'vocals']
+vi = names.index('vocals')
+bgm = sum(sources[i] for i in range(len(names)) if i != vi)
+sf.write('bgm_clean.wav', bgm.numpy().T, sr)  # 纯BGM
+sf.write('vocals.wav', sources[vi].numpy().T, sr)  # 纯人声（备用）
+```
+
+**⚠️ 注意事项：**
+- Windows 上 torchaudio 新版有 torchcodec 兼容问题，**用 soundfile 加载音频**，不要用 torchaudio.load()
+- 8分钟音频 CPU 分离约需2分钟
+- `pip install demucs soundfile` （demucs 会自动装 torch）
+
+**缓存路径：**
+```
+D:\video-analysis\{博主名}\
+├── bgm_raw.mp3        # 原始音频
+├── bgm_raw.wav        # wav 格式
+├── bgm_clean.wav      # demucs 分离后的纯BGM ← 二次复用这个
+└── vocals.wav         # 分离出的人声（备用）
+```
+
+**二次使用时直接读取 bgm_clean.wav，不需要重新分离。**
+
+### 4. 素材替换策略
+根据原视频镜头清单，逐个替换素材：
+
+| 原素材类型 | 替换方案 |
+|-----------|---------|
+| 历史剧片段 | 即梦生成同场景图/视频 |
+| 纪录片画面 | Pexels/Pixabay免费素材 |
+| 航拍/风景 | AI生成或素材库搜索 |
+| 人物特写 | 即梦生成角色图 |
+| 文字/数据 | Remotion 或 HTML截图生成 |
+
+```python
+# 即梦生成视频片段（如支持）
+form = {
+    'req_key': 'jimeng_video',  # 视频生成
+    'prompt': '场景描述 + style_positive',
+    ...
+}
+
+# 即梦生成图片 + Ken Burns 动效模拟视频
+# 用已验证的 gen_all.py 模板
+```
+
+### 5. 按原节奏合成
+- 保持原视频每个镜头的时长和切换节奏
+- 新素材替换原画面，BGM和节奏不变
+- 人声用TTS重新配音（一整条录制，不分段！）
+
+```python
+# 合成：图片/视频素材 + TTS音频 + BGM混合
+# BGM 音量降低到 20-30%，人声为主
+ffmpeg -i video_only.mp4 -i tts_audio.m4a -i bgm.mp3 \
+    -filter_complex "[1:a]volume=1.0[voice];[2:a]volume=0.25[music];[voice][music]amix=inputs=2:duration=first[a]" \
+    -map 0:v -map "[a]" -c:v copy -c:a aac -movflags +faststart final.mp4
+```
+
+### 6. 关键脚本路径
+- 图片生成：`D:\video-analysis\output\银针试毒v4\gen_all.py`
+- 视频合成：`D:\video-analysis\output\银针试毒v4\compose.py`
+- 拼接+压缩：`D:\video-analysis\output\银针试毒v4\merge_v5.py`
+- 腾讯云备份：`/home/ubuntu/scripts/jimeng/`
+
+---
 
 ## 阶段七：发布
 

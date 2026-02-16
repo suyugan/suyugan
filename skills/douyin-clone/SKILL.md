@@ -28,6 +28,49 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
 
 **说明**：分析阶段只需要元数据，不需要下载视频。仅在后续需要深度文案风格分析时，才选择性下载+转录少量代表性视频。
 
+## 阶段1.5：账号类型自动识别
+
+**在抓取数据之后、AI分析之前，自动判断博主的内容类型。**
+
+**流程**：
+1. 读取 `videos.json`，分析以下特征：
+   - **时长分布**：口播类通常1-3分钟，混剪类3-10分钟，实拍类时长不定
+   - **标签关键词**：提取高频标签，匹配类型特征词（如"vlog""实拍""剪辑""口播"等）
+   - **封面风格**：用AI视觉能力抽样分析3-5张封面图（是否有真人、是否为插画/配图、是否为实景）
+   - **视频宽高比**：竖屏9:16居多→口播/实拍概率高，横屏→混剪概率高
+
+2. **自动分类为以下四种类型之一**：
+
+| 类型 | 特征 | 后续流程 |
+|------|------|---------|
+| **配图口播** | 封面为插画/图片，无真人出镜，1-3分钟 | 标准流程（阶段二~七） |
+| **混剪** | 多素材拼接，3-10分钟，封面为影视/纪录片截图 | 走混剪流程 |
+| **真人出镜** | 封面有真人，vlog/口播类标签 | ⚠️ 建议转为配图模式复刻 |
+| **实拍** | 封面为实景照片，生活/旅行/美食类标签 | 根据具体情况选择配图或混剪流程 |
+
+3. **真人出镜类特殊处理**：
+   - 自动输出建议：「该博主为真人出镜类型，建议转为配图口播模式复刻」
+   - 原因：AI无法生成一致的真人形象，强行复刻会导致人物不统一、辨识度低
+   - 用户确认后，按配图口播流程执行
+
+4. **写入 style_template.json**：
+```json
+{
+  "content_type": "配图口播",
+  "content_type_confidence": 0.85,
+  "content_type_reason": "封面均为插画风格，无真人出镜，平均时长2分钟，高频标签含'心理''情感'",
+  ...其他已有字段...
+}
+```
+
+5. **后续阶段根据 content_type 自动走对应分支**：
+   - `配图口播` → 标准阶段二~七
+   - `混剪` → 混剪视频复刻流程
+   - `真人出镜` → 提示用户确认后走配图口播流程
+   - `实拍` → 提示用户选择配图或混剪
+
+---
+
 ## 阶段二：AI分析出报告
 
 **需要token的部分：** 读取 data_report.md（+ 可选的转录文本），由AI生成完整分析报告，包括：
@@ -89,6 +132,38 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
 
 **⚠️ 此步骤必须在生成提示词之前完成，不能跳过！没有风格模板就没有视觉一致性。**
 
+### 📝 Few-shot文案样本提取（阶段二附属步骤）
+
+**目的**：从博主的高赞视频中提取典型文案片段，供阶段三写文案时作为few-shot示例，让AI精准模仿博主的语气、句式和节奏。
+
+**流程**：
+1. 从 `videos.json` 中筛选点赞量Top5的视频
+2. 如果这些视频已有转录文本，从中提取**3-5段最典型的文案片段**：
+   - 优先选取：每个视频的**开头**（前3秒钩子）和**结尾**（金句收尾）
+   - 片段长度：每段50-150字
+3. 保存为 `D:\video-analysis\{博主名}\copywriting_examples.json`：
+```json
+{
+  "blogger": "博主名",
+  "extracted_at": "2026-02-16",
+  "examples": [
+    {
+      "video_title": "视频标题",
+      "likes": 50000,
+      "position": "opening",
+      "text": "你有没有发现，那些越是讨好别人的人，越是活得卑微？"
+    },
+    {
+      "video_title": "视频标题",
+      "likes": 50000,
+      "position": "ending",
+      "text": "记住，你的善良要带点锋芒，否则就是软弱。"
+    }
+  ]
+}
+```
+4. **缓存复用**：如果 `copywriting_examples.json` 已存在，跳过提取，直接复用。同博主不重复提取。
+
 **可选：深度文案分析**（需要下载+转录）
 ```powershell
 python scripts/download_videos.py -i videos.json -o . --top 10
@@ -98,7 +173,15 @@ python scripts/transcribe.py -d . -m medium
 ## 阶段三：写文案
 
 1. 从 data_report.md 的「推荐选题Top5」中选择，或根据分析报告确定选题
-2. 按目标博主的文案结构写原创文案：
+2. **加载Few-shot文案样本**：如果 `D:\video-analysis\{博主名}\copywriting_examples.json` 存在，将其中的examples作为few-shot示例放入prompt，让AI模仿博主具体的语气、句式、节奏。Prompt结构：
+   ```
+   以下是该博主的典型文案风格示例：
+   【示例1-开头】"你有没有发现..."
+   【示例2-结尾】"记住，你的善良..."
+   ...
+   请模仿上述风格，围绕"{选题}"写一篇原创文案。
+   ```
+3. 按目标博主的文案结构写原创文案：
    - **开头**（前3秒）：痛点共鸣/反直觉疑问，抓注意力
    - **正文**：痛点 → 原因分析 → 深层解读 → 解决方案
    - **结尾**：金句收尾 + 引导互动
@@ -155,6 +238,52 @@ python scripts/transcribe.py -d . -m medium
 # 环境变量必须是 VOLC_AK 和 VOLC_SK（不是 VOLC_ACCESSKEY！）
 python D:\video-analysis\scripts\jimeng_gen.py prompts.json -o images/
 ```
+
+#### 5.1.1 生成质量校验
+
+**每张生成的图片必须经过AI视觉校验，确保质量达标后再进入合成阶段。**
+
+**校验流程**：
+1. 对每张生成的图片，用AI视觉能力（Claude/Gemini）快速检查以下三项：
+   - **a) 画风一致性**：是否符合 `style_template.json` 的风格（色调、画风、氛围是否匹配）
+   - **b) 内容匹配度**：画面内容是否与 `prompts.json` 中对应片段的文案内容匹配
+   - **c) 缺陷检测**：是否有明显缺陷（人物变形、文字乱码、多余肢体、面部崩坏等）
+
+2. **评分标准**：每项 Pass/Fail，三项全Pass才算合格
+
+3. **不合格处理**：
+   - 分析失败原因，自动修改prompt（如加入负向提示词、调整描述）
+   - 用修改后的prompt重新生成
+   - **最多重试2次**，仍不合格则保留最佳结果并标记警告
+
+4. **校验结果记录到 `quality_log.json`**：
+```json
+{
+  "scene_1": {
+    "attempts": [
+      {
+        "attempt": 1,
+        "style_match": true,
+        "content_match": true,
+        "defect_free": false,
+        "defect_detail": "人物右手多一根手指",
+        "result": "retry"
+      },
+      {
+        "attempt": 2,
+        "style_match": true,
+        "content_match": true,
+        "defect_free": true,
+        "result": "pass"
+      }
+    ],
+    "final_status": "pass",
+    "final_image": "images/scene_1.png"
+  }
+}
+```
+
+5. **保存路径**：`D:\video-analysis\output\{主题}\quality_log.json`
 
 **即梦API关键参数（子代理必读，多次出错的地方）：**
 
@@ -509,7 +638,8 @@ ffmpeg -i video_only.mp4 -i tts_audio.m4a -i bgm.mp3 \
 
 ### 缓存复用
 - **博主数据缓存**：videos.json增量更新，不重复抓取
-- **画风模板缓存**：`style_template.json` 存博主视觉风格，后续同博主视频直接复用
+- **画风模板缓存**：`style_template.json` 存博主视觉风格+内容类型，后续同博主视频直接复用
+- **Few-shot文案缓存**：`copywriting_examples.json` 存博主典型文案片段，同博主不重复提取
 - **BGM本地缓存**：`D:\video-analysis\bgm\` 下载一次永久复用
 - **TTS声音固定**：zh-CN-YunxiNeural，不需要每次选择
 
@@ -538,12 +668,14 @@ D:\video-analysis\
 │   ├── videos.json              # 视频元数据
 │   ├── data_report.md           # 数据统计
 │   ├── analysis_report.md       # AI分析报告
-│   └── style_template.json      # 画风模板缓存
+│   ├── style_template.json      # 画风模板缓存（含content_type）
+│   └── copywriting_examples.json # Few-shot文案样本缓存
 └── output\
     └── {主题}\                  # 视频制作输出
         ├── script.md            # 文案脚本
         ├── prompts.json         # 场景提示词
         ├── images\              # 场景图
+        ├── quality_log.json     # 生图质量校验日志
         ├── narration.mp3        # TTS配音
         └── final.mp4            # 最终视频
 ```

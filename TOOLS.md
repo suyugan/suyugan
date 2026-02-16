@@ -237,6 +237,14 @@ python skills/phone-control/scripts/phone.py tap 540 1200
 
 ---
 
+## 📦 视频交付规则
+- 视频完成后必须同时提供：
+  1. **在线链接**（如 http://bm.weiixxin.com/videos/xxx.mp4）
+  2. **本地文件路径**（如 D:\video-analysis\output\xxx\final.mp4）
+- 上传腾讯云时**文件名用英文/拼音**，避免中文404问题
+
+---
+
 ## 📹 视频分析输出格式
 
 分析视频时按以下格式输出：

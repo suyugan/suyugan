@@ -68,6 +68,9 @@ This file stores distilled learnings, important decisions, and crucial context t
 - 定期检查子代理状态（每5-10分钟）
 - 发现卡住/失败立即告知并提供解决方案
 - 多步骤任务先spawn准备工作（如登录），再spawn主任务
+- **不让子代理自己发明方案！** spawn时必须明确指定用哪个脚本/命令，关键步骤给出具体代码，不给自由发挥空间
+- FFmpeg多图合成：必须逐张生成片段再concat demuxer拼接，禁止一条命令多个-loop输入+zoompan
+- 音频混音参数：旁白volume=2.0，BGM volume=3.0（即0.75相对比例）
 
 ### API Keys
 - Tavily: REDACTED_TAVILY_KEY

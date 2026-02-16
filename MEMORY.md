@@ -52,7 +52,7 @@ This file stores distilled learnings, important decisions, and crucial context t
 ### 视频制作→发布抖音 流程
 1. 分析参考视频：用视频分析API (http://localhost:18810) 下载+抽帧+转录
 2. 写文案：模仿风格，原创内容，画面精确匹配文案
-3. 生成配图：优先用 Replicate FLUX / Google Imagen / HuggingFace FLUX Space
+3. 生成配图：优先用 Replicate FLUX / Google Imagen / HuggingFace FLUX Space（**抖音视频一律生成横屏图 16:9**）
 4. 配音：用TTS生成语音
 5. 合成视频：FFmpeg或Remotion
 6. **发布抖音**：浏览器自动化打开 creator.douyin.com，上传+填写信息+发布（网页版，非headless）

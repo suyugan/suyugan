@@ -1,4 +1,4 @@
----
+﻿---
 name: douyin-clone
 description: 复刻抖音博主完整流程。从分析目标博主视频风格、选题规律、数据表现，到生成原创文案、AI配图、TTS配音、BGM合成、最终视频输出。当用户说"复刻博主"、"模仿抖音号"、"分析抖音博主"、"做一个类似XX的视频"时触发。
 ---
@@ -10,43 +10,44 @@ description: 复刻抖音博主完整流程。从分析目标博主视频风格�
 
 ## ⚠️ 子代理Spawn规则
 
+**所有子代理spawn时不设超时（不传runTimeoutSeconds），让子代理跑到完成为止！**
 **即梦生图必须用标准spawn模板，不允许子代理自己写API调用代码！**
 
-### 即梦生图子代理spawn模板（直接复制使用）：
+### 完整视频制作子代理spawn模板（推荐：一个子代理跑完全流程）：
 ```
 sessions_spawn({
-  label: "{主题}-即梦生图",
-  task: `即梦批量生图任务。所有输出用中文。
+  label: "{主题}-视频制作",
+  runTimeoutSeconds: 3600,
+  task: `复刻「{博主名}」风格，制作主题「{主题}」的抖音视频。所有输出用中文。
+
+必须先读取技能文档：skills/douyin-clone/SKILL.md，严格按流程执行。
 
 工作目录：D:\\video-analysis\\output\\{主题}\\
-读取 prompts.json 获取所有场景prompt。
+博主数据目录：D:\\video-analysis\\{博主名}\\
 
-【生图流程 - 严格按此执行，不要自己写JS/API代码！】
+【前置检查】
+1. 检查抖音体字体是否安装：
+   if (!(Test-Path "C:\\Windows\\Fonts\\DouyinSansBold.ttf")) → 必须先下载安装！
+2. 检查 style_template.json 是否存在（博主数据目录）
 
+【即梦生图流程 - 严禁自己写JS/API代码！必须用脚本！】
 1. browser tabs (profile="openclaw", target="host") 找到 jimeng.jianying.com 的 targetId
-
-2. 对每个场景循环：
-   a) 生成提交JS：
-      chcp 65001
-      python D:\\video-analysis\\scripts\\jimeng_fetch_gen.py --action generate --prompt "场景prompt" --ratio "16:9" --json
-      → 拿到 {"js": "...", "submit_id": "xxx"}
-
-   b) browser evaluate执行提交JS（targeid=即梦tab的targetId）
-
+2. 对每个场景：
+   a) chcp 65001 && python D:\\video-analysis\\scripts\\jimeng_fetch_gen.py --action generate --prompt "prompt" --ratio "16:9" --json
+   b) browser evaluate执行返回的js
    c) 等3秒
+   d) python D:\\video-analysis\\scripts\\jimeng_fetch_gen.py --action poll --submit-id "xxx" --json
+   e) 间隔5秒轮询直到status=done
+   f) curl下载图片到 images/scene_XX.webp
+3. 每5张图发2-3张预览给用户（用message工具发送图片，不阻塞生图）
 
-   d) 生成轮询JS：
-      python D:\\video-analysis\\scripts\\jimeng_fetch_gen.py --action poll --submit-id "submit_id" --json
+【字幕烧录】
+- 方案二：原始文案去标点 + FunASR时间戳对齐（丢弃ASR文字）
+- 字体：DouyinSans Bold, FontSize=15, 白色+黑色描边, 单行无标点
 
-   e) 间隔5秒轮询直到status=done（超时120秒）
-
-   f) curl下载第一张图到 images/scene_XX.webp
-
-3. 每5个场景发一次进度更新
-4. 完成后汇报生成了多少张图
-
-脚本已内置sign签名算法，不需要自己算sign。
-如果中文乱码先执行 chcp 65001。`
+【视频完成后】
+1. 上传到腾讯云：paramiko sftp到106.55.158.137，路径 /home/ubuntu/www/videos/{主题}.mp4
+2. 发送高清链接：http://bm.weiixxin.com/videos/{主题}.mp4`
 })
 ```
 
@@ -549,19 +550,18 @@ ffmpeg -y -i raw_video.mp4 -vf "subtitles='subs.srt':force_style='...'" -c:v lib
 pip install funasr modelscope torch torchaudio
 ```
 
-**字幕生成代码（方案二：原始文案+ASR时间戳）：**
+**字幕生成代码（方案二：原始文案+ASR逐字时间戳）：**
 ```python
 import re
 from funasr import AutoModel
 
-# 1. 原始文案按句拆分（去标点）
-def split_sentences(script_text):
-    """按句号、问号、感叹号等拆分，去掉所有标点"""
-    sentences = re.split(r'[。！？\n]+', script_text)
-    sentences = [re.sub(r'[，、；：""''……——《》（）\(\)「」【】]', '', s).strip() for s in sentences]
-    return [s for s in sentences if s]
+# 1. 原始文案去标点，保留为完整字符串
+def clean_text(script_text):
+    """去掉所有标点，保留纯文字"""
+    text = re.sub(r'[。，、！？；：""''……——《》（）\(\)「」【】\s\n]+', '', script_text)
+    return text
 
-# 2. ASR获取时间戳
+# 2. ASR获取逐字时间戳
 asr_model = AutoModel(
     model="paraformer-zh",
     vad_model="fsmn-vad",
@@ -569,28 +569,98 @@ asr_model = AutoModel(
 )
 result = asr_model.generate(input="extracted_audio.wav")
 
-# 3. 提取ASR时间戳（丢弃ASR文字）
-asr_segments = result[0]["sentence_info"]
-timestamps = [(seg["start"], seg["end"]) for seg in asr_segments]
+# 3. 提取逐字时间戳（关键！用timestamp字段而不是sentence_info）
+# result[0]["timestamp"] 返回 [[start_ms, end_ms], [start_ms, end_ms], ...]
+# 每个元素对应一个字的起止时间
+char_timestamps = result[0]["timestamp"]  # 逐字时间戳列表
+asr_text = result[0]["text"]  # ASR识别的文字（仅用于对齐，不用于显示）
 
-# 4. 原始文案 + 时间戳配对生成SRT
-original_sentences = split_sentences(script_text)
+# 4. 原始文案去标点
+original_text = clean_text(script_text)
 
-def to_srt(sentences, timestamps):
+# 5. 先按句分段，再对长句二次切分≤15字
+def split_to_sentences(script_text):
+    """先按句号/问号/感叹号/换行分句，再去标点"""
+    sentences = re.split(r'[。！？\n]+', script_text)
+    result = []
+    for s in sentences:
+        s = re.sub(r'[，、；：""''……——《》（）\(\)「」【】\s]', '', s).strip()
+        if s:
+            result.append(s)
+    return result
+
+def smart_split_sentence(text, max_len=15):
+    """对单个句子按≤15字切分，保持完整句意。
+    优先用AI切分（语义完整），退化用虚词切分。"""
+    if len(text) <= max_len:
+        return [text]
+    # 方案A：用AI切分（推荐，语义最自然）
+    # 在调用时传入AI prompt：
+    # "把以下句子拆成每段≤15字的片段，每段必须有完整句意，直接输出片段列表，用换行分隔：{text}"
+    # 方案B：退化方案，按虚词切分
+    chunks = []
+    while len(text) > max_len:
+        cut = max_len
+        for i in range(min(max_len, len(text)) - 1, max(max_len - 5, 0), -1):
+            if text[i] in '的了吗呢吧是在有和但而就也都要会能把被让给':
+                cut = i + 1
+                break
+        chunks.append(text[:cut])
+        text = text[cut:]
+    if text:
+        chunks.append(text)
+    return chunks
+
+# 推荐：用AI批量切分所有长句
+# prompt示例：
+# """把以下每个句子拆成≤15字的片段，每个片段必须有完整句意。
+# 输出格式：每个原句的片段用 | 分隔，句子之间用换行分隔。
+# 
+# 1. 古代影视剧里动不动就掏出几十两上百两银子买东西
+# 2. 可你知道吗在真实的古代绝大多数的老百姓一辈子都没见过银子长什么样
+# ..."""
+# AI输出：
+# 古代影视剧里|动不动就掏出|几十两上百两银子买东西
+# 可你知道吗|在真实的古代|绝大多数的老百姓|一辈子都没见过|银子长什么样
+
+# 先按句分段，再切分长句
+sentences = split_to_sentences(script_text)
+chunks = []
+for sent in sentences:
+    chunks.extend(smart_split_sentence(sent))
+
+# 6. 逐字时间戳与文案切片对齐生成SRT
+def to_srt_with_char_timestamps(chunks, char_timestamps):
     srt_lines = []
-    # 如果句子数和时间戳数不一致，按较少的来配对
-    count = min(len(sentences), len(timestamps))
-    for i in range(count):
-        start_ms, end_ms = timestamps[i]
-        text = sentences[i]
+    char_idx = 0  # 当前消耗到第几个字的时间戳
+    
+    for i, chunk in enumerate(chunks):
+        chunk_len = len(chunk)
+        if char_idx >= len(char_timestamps):
+            break
+        
+        # 该切片对应的时间范围：第一个字的start → 最后一个字的end
+        start_ms = char_timestamps[char_idx][0]
+        end_idx = min(char_idx + chunk_len - 1, len(char_timestamps) - 1)
+        end_ms = char_timestamps[end_idx][1]
+        
         start_t = f"{start_ms//3600000:02d}:{(start_ms%3600000)//60000:02d}:{(start_ms%60000)//1000:02d},{start_ms%1000:03d}"
         end_t = f"{end_ms//3600000:02d}:{(end_ms%3600000)//60000:02d}:{(end_ms%60000)//1000:02d},{end_ms%1000:03d}"
-        srt_lines.append(f"{i+1}\n{start_t} --> {end_t}\n{text}\n")
+        
+        srt_lines.append(f"{i+1}\n{start_t} --> {end_t}\n{chunk}\n")
+        char_idx += chunk_len
+    
     return "\n".join(srt_lines)
 
 with open("subs.srt", "w", encoding="utf-8") as f:
-    f.write(to_srt(original_sentences, timestamps))
+    f.write(to_srt_with_char_timestamps(chunks, char_timestamps))
 ```
+
+**⚠️ 关键点：**
+- 用 `result[0]["timestamp"]` 获取逐字时间戳（不是 `sentence_info`！）
+- 逐字时间戳精度很高（±0.1秒），切成多短的片段都能精确对齐
+- 原始文案总字数 ≈ ASR识别字数，一一对应消耗时间戳
+- 如果字数不完全匹配（ASR多识别/少识别了几个字），按比例微调对齐
 
 **热词增强**（提升时间戳对齐精度）：
 ```python
@@ -601,9 +671,25 @@ result = asr_model.generate(
 ```
 
 **字幕样式参数（ASS force_style）：**
+
+**⚠️ 字体安装检查（每次合成前必须执行）：**
+```powershell
+# 检查抖音体是否已安装
+if (!(Test-Path "C:\Windows\Fonts\DouyinSansBold.ttf")) {
+    # 下载抖音体（从抖音官网Sans页面获取）
+    # 方法1：browser自动化下载
+    # 方法2：如果之前下载过，从备份路径复制
+    # 方法3：直接用curl下载（需要有效URL）
+    
+    # 安装字体（复制到Fonts目录即可）
+    Copy-Item "DouyinSansBold.ttf" "C:\Windows\Fonts\DouyinSansBold.ttf"
+}
+```
+如果系统没有抖音体，子代理必须先安装再烧录字幕，**不能用微软雅黑替代**！
+
 ```
 FontName=DouyinSans Bold
-FontSize=13
+FontSize=15
 PrimaryColour=&H00FFFFFF  (白色)
 OutlineColour=&H00000000  (黑色描边)
 BorderStyle=1
@@ -617,14 +703,14 @@ MarginV=3    (紧贴底部)
 **关键规则：**
 - 每条字幕**严格只一行，不允许换行**（≤15字为佳）
 - **不要标点**——文案拆分时就去掉所有中文标点
-- 字体使用**DouyinSans Bold（抖音体）**，FontSize=13
+- 字体使用**DouyinSans Bold（抖音体）**，FontSize=15
 - **字幕必须从最终视频音频生成时间戳**，不能从原始TTS音频（BGM混合后时间轴可能偏移）
 - ASR只用于获取时间戳，文字内容用原始文案（零错别字）
 
 **FFmpeg烧录命令：**
 ```bash
 ffmpeg -y -i input_video.mp4 \
-  -vf "subtitles='path/to/subtitles.srt':force_style='FontName=DouyinSans Bold,FontSize=13,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=1,Shadow=0,Bold=1,Alignment=2,MarginV=3'" \
+  -vf "subtitles='path/to/subtitles.srt':force_style='FontName=DouyinSans Bold,FontSize=15,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=1,Shadow=0,Bold=1,Alignment=2,MarginV=3'" \
   -c:v libx264 -preset slow -crf 18 \
   -c:a copy \
   -movflags +faststart \
@@ -790,6 +876,42 @@ ffmpeg -i video_only.mp4 -i tts_audio.m4a -i bgm.mp3 \
 
 ---
 
+## 阶段6.5：生成高清视频链接（必须步骤）
+
+**视频合成完成后，必须上传到腾讯云生成可预览的高清链接！**
+
+**流程：**
+1. 用Python paramiko上传 final.mp4 到腾讯云：
+```python
+import paramiko
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+# 密码从TOOLS.md读取（SSH到服务器查 /home/ubuntu/.credentials/accounts.md）
+ssh.connect('106.55.158.137', username='ubuntu', password='密码')
+sftp = ssh.open_sftp()
+# 确保目录存在
+try: sftp.mkdir('/home/ubuntu/www/videos/')
+except: pass
+sftp.put('D:\\video-analysis\\output\\{主题}\\final.mp4', f'/home/ubuntu/www/videos/{主题}.mp4')
+```
+
+2. Nginx已配置 `/videos/` 路径（如未配置需添加）：
+```nginx
+location /videos/ {
+    alias /home/ubuntu/www/videos/;
+    types { video/mp4 mp4; }
+}
+```
+
+3. **发送链接给用户**：
+```
+🎬 视频已生成！高清预览：
+http://bm.weiixxin.com/videos/{主题}.mp4
+时长：X分X秒 | 分辨率：2560×1440
+```
+
+---
+
 ## 阶段七：发布
 
 通过浏览器自动化发布到抖音：
@@ -851,3 +973,5 @@ D:\video-analysis\
         ├── narration.mp3        # TTS配音
         └── final.mp4            # 最终视频
 ```
+
+

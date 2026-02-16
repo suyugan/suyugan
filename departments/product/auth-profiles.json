@@ -39,9 +39,9 @@
   },
   "usageStats": {
     "anthropic:default": {
-      "lastUsed": 1771217819279,
+      "lastUsed": 1771218880078,
       "errorCount": 0,
-      "lastFailureAt": 1771215440224
+      "lastFailureAt": 1771218423747
     },
     "qwen-portal:default": {
       "lastUsed": 1770128994301,

@@ -147,16 +147,30 @@ python scripts/transcribe.py -d . -m medium
 
 ⚡ **TTS配音和即梦生图可以同时执行，不需要串行等待。**
 
-### 5.1 AI配图
+### 5.1 AI配图（即梦API）
 
-**本地脚本：**
+**⚠️ 必须使用标准化脚本，不要自己写API调用代码！**
+
 ```powershell
-python scripts/generate_images.py prompts.json -o images --ak xxx --sk xxx
+# 环境变量必须是 VOLC_AK 和 VOLC_SK（不是 VOLC_ACCESSKEY！）
+python D:\video-analysis\scripts\jimeng_gen.py prompts.json -o images/
 ```
 
-- `scripts/generate_images.py` — 读取prompts.json，调用即梦API异步生图
+**即梦API关键参数（子代理必读，多次出错的地方）：**
 
-即梦API参考：`references/jimeng-api.md`
+| 参数 | ✅ 正确 | ❌ 常见错误 |
+|------|---------|------------|
+| req_key | `jimeng_t2i_v40` | `jimeng_high_aes_general_v21_L` |
+| task_id位置 | `resp['data']['task_id']` | `resp['task_id']` |
+| status位置 | `r['data']['status']` | `r['status']`（永远为空！） |
+| image_urls位置 | `r['data']['image_urls']` | `r['image_urls']` |
+| 环境变量 | `VOLC_AK` / `VOLC_SK` | `VOLC_ACCESSKEY` |
+| 必要参数 | `logo_info: {add_logo: False}` | `negative_prompt, seed, scale, ddim_steps` |
+
+**所有响应数据都在 `data` 字段里，不在顶层！**
+
+排查详情见：`memory/jimeng-api-fix.md`
+标准脚本：`D:\video-analysis\scripts\jimeng_gen.py`
 
 ### 5.2 TTS配音（与5.1并行）
 

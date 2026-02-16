@@ -311,11 +311,31 @@ python scripts/generate_tts.py script.md -o narration.mp3
 - `scripts/generate_tts.py` — 从script.md提取纯文本，edge-tts生成音频
 - **默认声音**：`zh-CN-YunxiNeural`（固定使用，除非用户要求更换）
 
-### 5.3 BGM
+### 5.3 BGM（从对标博主视频提取）
 
-- **默认BGM**：Dance For Me Wallis
-- **本地路径**：`D:\video-analysis\bgm\dance_for_me_wallis.mp3`
-- 首次使用时下载并存到上述路径，之后直接从本地调用
+**不再使用默认BGM（dance_for_me_wallis.mp3已废弃）。**
+
+BGM必须从对标博主的热门视频中提取，流程如下：
+
+1. **获取博主热门视频的music URL**：通过视频分析API获取博主高赞视频的 `music.play_url`
+2. **下载原始音频**：保存到 `D:\video-analysis\{博主名}\bgm_raw.mp3`
+3. **demucs分离人声**：去除人声，得到纯BGM（流程与混剪流程中"BGM提取与缓存"章节完全一致）
+4. **缓存复用**：纯BGM保存到 `D:\video-analysis\{博主名}\bgm_clean.wav`，同博主后续视频直接复用，不重复分离
+
+**缓存路径：**
+```
+D:\video-analysis\{博主名}\
+├── bgm_raw.mp3        # 原始音频（从抖音API下载）
+├── bgm_raw.wav        # wav 格式
+├── bgm_clean.wav      # demucs 分离后的纯BGM ← 二次复用这个
+└── vocals.wav         # 分离出的人声（备用）
+```
+
+**demucs分离代码**参考本文档"混剪视频复刻流程"中的"3. BGM提取与缓存"章节，完全相同的逻辑。
+
+**⚠️ 注意事项：**
+- Windows 上用 soundfile 加载音频，不要用 torchaudio.load()
+- 如果 `bgm_clean.wav` 已存在，直接复用，跳过分离步骤
 - 如用户指定其他BGM则按要求替换
 
 ## 阶段六：合成视频
@@ -350,6 +370,12 @@ ffmpeg -y -i narration.mp3 -i bgm.mp3 -filter_complex "[0:a]volume=1.0[voice];[1
 # 用ffmpeg concat协议或逐段生成再concat
 # 输出 raw_video.mp4（无字幕）
 ```
+
+**⚠️ 配图与文案一一对应规则（严格执行）：**
+- `prompts.json` 中每个scene的 `text` 对应一段文案，该段文案被TTS读出的时间段内，必须显示**对应编号的场景图**
+- **不能随机分配，不能顺序不匹配**——scene_1的图对应scene_1的文案音频时段，scene_2的图对应scene_2的文案音频时段，以此类推
+- **展示时长按文案片段的字数比例分配**：每张图的展示秒数 = (该片段字数 / 总文案字数) × 总音频时长
+- 示例：总文案500字，总音频120秒，scene_1文案100字 → scene_1图展示 100/500×120 = 24秒
 
 **步骤3：烧录字幕**
 ```bash
@@ -432,8 +458,8 @@ result = model.generate(input="audio.wav", language="zh", use_itn=True)
 
 **字幕样式参数（ASS force_style）：**
 ```
-FontName=Microsoft YaHei
-FontSize=19
+FontName=DouyinSans Bold
+FontSize=13
 PrimaryColour=&H00FFFFFF  (白色)
 OutlineColour=&H00000000  (黑色描边)
 BorderStyle=1
@@ -444,16 +470,32 @@ Alignment=2  (底部居中)
 MarginV=3    (紧贴底部)
 ```
 
+**字幕后处理（必须步骤）：**
+FunASR生成SRT后，必须用Python后处理**去掉所有中文标点**：
+```python
+import re
+def remove_cn_punctuation(text):
+    return re.sub(r'[。，、！？；：""''……——《》]', '', text)
+
+# 读取SRT，逐行处理
+with open('subs.srt', 'r', encoding='utf-8') as f:
+    content = f.read()
+content = remove_cn_punctuation(content)
+with open('subs.srt', 'w', encoding='utf-8') as f:
+    f.write(content)
+```
+
 **关键规则：**
-- 每条字幕**只显示一行**，不允许换行（≤15字为佳）
-- 字体大小和位置参考奇异史原作：白色粗体微软雅黑，黑色描边，贴画面底部
+- 每条字幕**严格只一行，不允许换行**（≤15字为佳）
+- 字幕按音频内容时间戳出现（FunASR默认行为，不要手动调整时间轴）
+- 字体使用**DouyinSans Bold（抖音体）**，FontSize=13
 - **字幕必须从最终视频音频生成**，不能从原始TTS音频生成（BGM混合后时间轴可能偏移）
 - **ASR用FunASR Paraformer-zh**（不用Whisper），语言自动识别中文
 
 **FFmpeg烧录命令：**
 ```bash
 ffmpeg -y -i input_video.mp4 \
-  -vf "subtitles='path/to/subtitles.srt':force_style='FontName=Microsoft YaHei,FontSize=19,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=1,Shadow=0,Bold=1,Alignment=2,MarginV=3'" \
+  -vf "subtitles='path/to/subtitles.srt':force_style='FontName=DouyinSans Bold,FontSize=13,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=1,Shadow=0,Bold=1,Alignment=2,MarginV=3'" \
   -c:v libx264 -preset slow -crf 18 \
   -c:a copy \
   -movflags +faststart \
@@ -669,7 +711,9 @@ D:\video-analysis\
 │   ├── data_report.md           # 数据统计
 │   ├── analysis_report.md       # AI分析报告
 │   ├── style_template.json      # 画风模板缓存（含content_type）
-│   └── copywriting_examples.json # Few-shot文案样本缓存
+│   ├── copywriting_examples.json # Few-shot文案样本缓存
+│   ├── bgm_raw.mp3              # 博主视频原始音频
+│   └── bgm_clean.wav            # demucs分离后的纯BGM（复用）
 └── output\
     └── {主题}\                  # 视频制作输出
         ├── script.md            # 文案脚本

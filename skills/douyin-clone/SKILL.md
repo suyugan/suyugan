@@ -184,6 +184,47 @@ python scripts/compose_video.py -i images -n narration.mp3 -b bgm.mp3 -o final.m
 
 **⚠️ 人物一致性：如果博主讲中国古代史，所有prompt必须写明"中国古代人物"，negative必须加"外国人，西方人"。风格模板(style_positive)必须拼接到每个prompt。**
 
+### 字幕烧录（必须步骤）
+
+视频必须烧录白色字幕，样式参考奇异史：
+
+**字幕生成流程：**
+1. 从合成好的视频（含BGM+配音）中提取音频
+2. 用Whisper对提取的音频生成SRT字幕（必须从最终音频生成，不能用原始TTS音频，否则时间戳对不上）
+3. 用FFmpeg subtitles滤镜烧录到视频上
+
+**字幕样式参数（ASS force_style）：**
+```
+FontName=Microsoft YaHei
+FontSize=19
+PrimaryColour=&H00FFFFFF  (白色)
+OutlineColour=&H00000000  (黑色描边)
+BorderStyle=1
+Outline=1
+Shadow=0
+Bold=1
+Alignment=2  (底部居中)
+MarginV=3    (紧贴底部)
+```
+
+**关键规则：**
+- 每条字幕**只显示一行**，不允许换行（Whisper small模型切分的每条通常≤15字，天然满足）
+- 字体大小和位置参考奇异史原作：白色粗体微软雅黑，黑色描边，贴画面底部
+- **字幕必须从最终视频音频生成**，不能从原始TTS音频生成（BGM混合后时间轴可能偏移）
+- Whisper模型用`small`（medium会OOM），语言指定`zh`
+
+**FFmpeg烧录命令：**
+```bash
+ffmpeg -y -i input_video.mp4 \
+  -vf "subtitles='path/to/subtitles.srt':force_style='FontName=Microsoft YaHei,FontSize=19,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=1,Shadow=0,Bold=1,Alignment=2,MarginV=3'" \
+  -c:v libx264 -preset slow -crf 18 \
+  -c:a copy \
+  -movflags +faststart \
+  output_with_subs.mp4
+```
+
+**⚠️ Windows路径注意：SRT路径中的反斜杠要替换为正斜杠，冒号要转义为 `\:`**
+
 ### 图片动效
 
 分析目标博主视频中图片的运动方式（下载Top3视频逐帧观察），复刻相同的动效。常见动效：

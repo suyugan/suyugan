@@ -147,6 +147,30 @@
           "maxTokens": 16384
         }
       ]
+    },
+    "gemini": {
+      "baseUrl": "https://generativelanguage.googleapis.com",
+      "apiKey": "REDACTED_GEMINI_KEY",
+      "api": "google-generative-ai",
+      "models": [
+        {
+          "id": "gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash",
+          "reasoning": true,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 1000000,
+          "maxTokens": 65536
+        }
+      ]
     }
   }
 }

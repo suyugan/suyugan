@@ -240,16 +240,26 @@ ffmpeg -y -i raw_video.mp4 -vf "subtitles='subs.srt':force_style='...'" -c:v lib
 3. 用FFmpeg subtitles滤镜烧录到视频上
 
 **ASR模型选择（重要！）：**
-- ✅ **FunASR Paraformer-zh**（首选）：中文错别字率最低，自带标点和VAD，显存仅1-2GB
-- ✅ **FunASR SenseVoice-Small**（备选）：速度最快，准确率接近Paraformer
-- ❌ **Whisper small/medium**（禁用）：中文专有名词错误率高（如"砒霜"→"披霜"），无标点
+
+| 模型 | 中文准确率 | 显存 | 速度 | 标点 | 推荐 |
+|------|-----------|------|------|------|------|
+| **FunASR Paraformer-zh** | ⭐⭐⭐⭐⭐ | 1-2GB | RTF 0.035 | ✅ | 🏆 首选 |
+| **FunASR SenseVoice-Small** | ⭐⭐⭐⭐⭐ | ~1GB | RTF 0.031 | ✅ | 🥈 备选（带情感标签） |
+| **Whisper small/medium** | ⭐⭐⭐ | 2GB | RTF ~0.17 | ❌ | ❌ 禁用 |
+
+实测对比（银针试毒60秒）：Whisper 7处错（披霜/鹤鼎红/剑血蜂猴等），Paraformer仅2处小错，SenseVoice 3处。详见 `memory/asr-comparison.md`。
+
+**安装：**
+```bash
+pip install funasr modelscope torch torchaudio
+```
+> ⚠️ FunASR 1.3.1 的 `load_pretrained_model.py` line 44 有 `copy.deepcopy` 导致内存翻倍，内存紧张时需手动去掉。
 
 **FunASR字幕生成代码：**
 ```python
 from funasr import AutoModel
-import re
 
-# 初始化（首次会下载模型约2GB）
+# 初始化（首次会下载模型约2GB：主模型+VAD+标点）
 asr_model = AutoModel(
     model="paraformer-zh",
     vad_model="fsmn-vad",
@@ -257,7 +267,7 @@ asr_model = AutoModel(
 )
 
 # 生成带时间戳的结果
-result = asr_model.generate(input="extracted_audio.wav", return_raw_text=False)
+result = asr_model.generate(input="extracted_audio.wav")
 
 # 转为SRT格式
 def to_srt(result):
@@ -270,6 +280,25 @@ def to_srt(result):
         end_t = f"{end_ms//3600000:02d}:{(end_ms%3600000)//60000:02d}:{(end_ms%60000)//1000:02d},{end_ms%1000:03d}"
         srt_lines.append(f"{i}\n{start_t} --> {end_t}\n{text}\n")
     return "\n".join(srt_lines)
+
+# 写入SRT文件
+with open("subs.srt", "w", encoding="utf-8") as f:
+    f.write(to_srt(result))
+```
+
+**热词增强**（提升专业术语准确率）：
+```python
+result = asr_model.generate(
+    input="extracted_audio.wav",
+    hotword="三氧化二砷 砒霜 鹤顶红 见血封喉"  # 按视频内容填写
+)
+```
+
+**备选方案：SenseVoice-Small**
+```python
+model = AutoModel(model="iic/SenseVoiceSmall", trust_remote_code=True)
+result = model.generate(input="audio.wav", language="zh", use_itn=True)
+# 输出可能含标签如 <|ANGRY|>，需后处理去除
 ```
 
 **字幕样式参数（ASS force_style）：**

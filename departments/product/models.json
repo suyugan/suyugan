@@ -150,7 +150,7 @@
     },
     "gemini": {
       "baseUrl": "https://generativelanguage.googleapis.com",
-      "apiKey": "REDACTED_GEMINI_KEY",
+      "apiKey": "AIzaSyCV4Sx86Z0OS6LxbILTrMvQusfwmjPC6TU",
       "api": "google-generative-ai",
       "models": [
         {

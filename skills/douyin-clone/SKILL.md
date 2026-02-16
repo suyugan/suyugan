@@ -74,8 +74,16 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
 **示例**（心理叨叨兽）：
 ```json
 {
-  "style_positive": "深蓝色单色调插画，蓝色monochrome配色，从深藏蓝到亮青蓝渐变，白色线条勾勒轮廓，日系动画风线稿，类似建筑蓝图的技术制图纹理，清晰干净的线描，逆光剪影氛围，暗部大面积深蓝，亮部以线条和光晕呈现，信息量密集的背景，电影感纵深构图，深夜静谧沉思氛围，数字插画质感，9:16竖版",
-  "style_negative": "彩色，暖色调，红色橙色黄色，写实照片，3D渲染，水彩模糊，白天场景，人物正脸特写，低质量，噪点，水印，文字签名，复杂装饰"
+  "style_positive": "深蓝色单色调插画，蓝色monochrome配色...",
+  "style_negative": "彩色，暖色调..."
+}
+```
+
+**示例**（奇异史 — 已验证可用，v9效果好）：
+```json
+{
+  "style_positive": "深沉暗色调数字绘画，电影级光影，暗色背景搭配暖色灯光点缀，人物肤色和服装色彩自然鲜明，浓郁的历史氛围，精细笔触，9:16竖版构图",
+  "style_negative": "纯黑白，完全单色，灰度图，高饱和度鲜艳色彩，外国人，西方人，金发，蓝眼，卡通Q版，3D渲染，低质量，模糊，水印，文字签名，变形，简笔画"
 }
 ```
 
@@ -184,14 +192,71 @@ python scripts/compose_video.py -i images -n narration.mp3 -b bgm.mp3 -o final.m
 
 **⚠️ 人物一致性：如果博主讲中国古代史，所有prompt必须写明"中国古代人物"，negative必须加"外国人，西方人"。风格模板(style_positive)必须拼接到每个prompt。**
 
+### 视频合成3步法（避免OOM，已验证）
+
+单pass合成在2-3分钟视频时FFmpeg会OOM，必须分3步：
+
+**步骤1：混合音频**（BGM+旁白）
+```bash
+ffmpeg -y -i narration.mp3 -i bgm.mp3 -filter_complex "[0:a]volume=1.0[voice];[1:a]volume=0.25,afade=t=in:st=0:d=2[music];[voice][music]amix=inputs=2:duration=first[a]" -map "[a]" -c:a aac -b:a 192k mixed_audio.m4a
+```
+
+**步骤2：合成图片+音频→原始视频**
+```python
+# Python脚本：按文案片段时长分配图片，每张图加Ken Burns动效
+# 用ffmpeg concat协议或逐段生成再concat
+# 输出 raw_video.mp4（无字幕）
+```
+
+**步骤3：烧录字幕**
+```bash
+# 先从raw_video提取音频→FunASR生成SRT→再烧录
+ffmpeg -y -i raw_video.mp4 -vn -acodec pcm_s16le -ar 16000 -ac 1 extracted_audio.wav
+# 用FunASR Paraformer生成SRT（见上方代码）
+ffmpeg -y -i raw_video.mp4 -vf "subtitles='subs.srt':force_style='...'" -c:v libx264 -preset slow -crf 18 -c:a copy -movflags +faststart final.mp4
+```
+
 ### 字幕烧录（必须步骤）
 
 视频必须烧录白色字幕，样式参考奇异史：
 
 **字幕生成流程：**
 1. 从合成好的视频（含BGM+配音）中提取音频
-2. 用Whisper对提取的音频生成SRT字幕（必须从最终音频生成，不能用原始TTS音频，否则时间戳对不上）
+2. 用**FunASR Paraformer-zh**对提取的音频生成SRT字幕（**不要用Whisper！** Paraformer中文错别字率远低于Whisper，详见 memory/asr-comparison.md）
 3. 用FFmpeg subtitles滤镜烧录到视频上
+
+**ASR模型选择（重要！）：**
+- ✅ **FunASR Paraformer-zh**（首选）：中文错别字率最低，自带标点和VAD，显存仅1-2GB
+- ✅ **FunASR SenseVoice-Small**（备选）：速度最快，准确率接近Paraformer
+- ❌ **Whisper small/medium**（禁用）：中文专有名词错误率高（如"砒霜"→"披霜"），无标点
+
+**FunASR字幕生成代码：**
+```python
+from funasr import AutoModel
+import re
+
+# 初始化（首次会下载模型约2GB）
+asr_model = AutoModel(
+    model="paraformer-zh",
+    vad_model="fsmn-vad",
+    punc_model="ct-punc",
+)
+
+# 生成带时间戳的结果
+result = asr_model.generate(input="extracted_audio.wav", return_raw_text=False)
+
+# 转为SRT格式
+def to_srt(result):
+    srt_lines = []
+    for i, seg in enumerate(result[0]["sentence_info"], 1):
+        start_ms = seg["start"]
+        end_ms = seg["end"]
+        text = seg["text"]
+        start_t = f"{start_ms//3600000:02d}:{(start_ms%3600000)//60000:02d}:{(start_ms%60000)//1000:02d},{start_ms%1000:03d}"
+        end_t = f"{end_ms//3600000:02d}:{(end_ms%3600000)//60000:02d}:{(end_ms%60000)//1000:02d},{end_ms%1000:03d}"
+        srt_lines.append(f"{i}\n{start_t} --> {end_t}\n{text}\n")
+    return "\n".join(srt_lines)
+```
 
 **字幕样式参数（ASS force_style）：**
 ```
@@ -208,10 +273,10 @@ MarginV=3    (紧贴底部)
 ```
 
 **关键规则：**
-- 每条字幕**只显示一行**，不允许换行（Whisper small模型切分的每条通常≤15字，天然满足）
+- 每条字幕**只显示一行**，不允许换行（≤15字为佳）
 - 字体大小和位置参考奇异史原作：白色粗体微软雅黑，黑色描边，贴画面底部
 - **字幕必须从最终视频音频生成**，不能从原始TTS音频生成（BGM混合后时间轴可能偏移）
-- Whisper模型用`small`（medium会OOM），语言指定`zh`
+- **ASR用FunASR Paraformer-zh**（不用Whisper），语言自动识别中文
 
 **FFmpeg烧录命令：**
 ```bash

@@ -8,6 +8,48 @@ description: 复刻抖音博主完整流程。从分析目标博主视频风格�
 完整流程分7个阶段，按顺序执行。每个阶段完成后向用户汇报进度。
 **TTS和生图可并行执行以提高效率。**
 
+## ⚠️ 子代理Spawn规则
+
+**即梦生图必须用标准spawn模板，不允许子代理自己写API调用代码！**
+
+### 即梦生图子代理spawn模板（直接复制使用）：
+```
+sessions_spawn({
+  label: "{主题}-即梦生图",
+  task: `即梦批量生图任务。所有输出用中文。
+
+工作目录：D:\\video-analysis\\output\\{主题}\\
+读取 prompts.json 获取所有场景prompt。
+
+【生图流程 - 严格按此执行，不要自己写JS/API代码！】
+
+1. browser tabs (profile="openclaw", target="host") 找到 jimeng.jianying.com 的 targetId
+
+2. 对每个场景循环：
+   a) 生成提交JS：
+      chcp 65001
+      python D:\\video-analysis\\scripts\\jimeng_fetch_gen.py --action generate --prompt "场景prompt" --ratio "16:9" --json
+      → 拿到 {"js": "...", "submit_id": "xxx"}
+
+   b) browser evaluate执行提交JS（targeid=即梦tab的targetId）
+
+   c) 等3秒
+
+   d) 生成轮询JS：
+      python D:\\video-analysis\\scripts\\jimeng_fetch_gen.py --action poll --submit-id "submit_id" --json
+
+   e) 间隔5秒轮询直到status=done（超时120秒）
+
+   f) curl下载第一张图到 images/scene_XX.webp
+
+3. 每5个场景发一次进度更新
+4. 完成后汇报生成了多少张图
+
+脚本已内置sign签名算法，不需要自己算sign。
+如果中文乱码先执行 chcp 65001。`
+})
+```
+
 ---
 
 ## 阶段一：抓取数据
@@ -170,9 +212,30 @@ python scripts/download_videos.py -i videos.json -o . --top 10
 python scripts/transcribe.py -d . -m medium
 ```
 
+## 阶段2.5：推送选题给用户选择
+
+**分析报告完成后，必须先把推荐选题发给用户选择，不要自己决定选题！**
+
+1. 从 data_report.md 提取「推荐选题Top5」
+2. 用 `message` 工具发送给用户，格式：
+```
+📋 奇异史账号分析完成！推荐选题：
+
+1️⃣ 古代一两银子值多少钱
+2️⃣ 古代刽子手的真实生活
+3️⃣ ...
+4️⃣ ...
+5️⃣ ...
+
+回复数字选择，或者告诉我你想做的选题。
+```
+3. **等待用户回复后再进入阶段三**
+
+---
+
 ## 阶段三：写文案
 
-1. 从 data_report.md 的「推荐选题Top5」中选择，或根据分析报告确定选题
+1. 根据用户选择的选题，或用户自定义的选题
 2. **加载Few-shot文案样本**：如果 `D:\video-analysis\{博主名}\copywriting_examples.json` 存在，将其中的examples作为few-shot示例放入prompt，让AI模仿博主具体的语气、句式、节奏。Prompt结构：
    ```
    以下是该博主的典型文案风格示例：
@@ -230,14 +293,93 @@ python scripts/transcribe.py -d . -m medium
 
 ⚡ **TTS配音和即梦生图可以同时执行，不需要串行等待。**
 
-### 5.1 AI配图（即梦API）
+### 5.1 AI配图（即梦无感方案 — 逆向签名算法）
 
-**⚠️ 必须使用标准化脚本，不要自己写API调用代码！**
+**⚠️ 使用即梦网页版内部API（Fetch方式），不走官方API！无需API key，通过browser evaluate在已登录的即梦网页中直接调用。**
 
-```powershell
-# 环境变量必须是 VOLC_AK 和 VOLC_SK（不是 VOLC_ACCESSKEY！）
-python D:\video-analysis\scripts\jimeng_gen.py prompts.json -o images/
+**⚠️⚠️⚠️ 子代理必读：必须使用下面的标准脚本，严禁自己写JS/API调用代码！脚本已内置sign签名算法（MD5逆向），自己写会因为缺少签名报1002错误！**
+
+**前置条件：** openclaw浏览器中即梦网页版（jimeng.jianying.com）已登录。
+
+**标准脚本路径：**
+- 单张生成JS：`D:\video-analysis\scripts\jimeng_fetch_gen.py`
+- 批量生成：`D:\video-analysis\scripts\jimeng_batch_fetch.py`
+
+**逐步调用流程（子代理必须严格按此执行）：**
+
 ```
+步骤1：获取即梦tab
+  browser({ action: "tabs", profile: "openclaw", target: "host" })
+  → 找到 url 包含 jimeng.jianying.com 的tab，记下 targetId
+
+步骤2：读取 prompts.json
+  读取所有场景的 prompt 文本
+
+步骤3：逐个场景生图（循环）
+  对每个场景：
+
+  3a. 生成提交JS代码：
+      python D:\video-analysis\scripts\jimeng_fetch_gen.py --action generate --prompt "场景prompt文本" --ratio "16:9" --json
+      → 输出JSON：{"js": "...", "submit_id": "xxx-xxx"}
+
+  3b. 在即梦页面执行提交JS：
+      browser({ action: "act", profile: "openclaw", target: "host", targeid: "<即梦targetId>",
+        request: { kind: "evaluate", fn: "<上一步拿到的js>" } })
+
+  3c. 等待3秒（提交间隔）
+
+  3d. 生成轮询JS代码：
+      python D:\video-analysis\scripts\jimeng_fetch_gen.py --action poll --submit-id "<submit_id>" --json
+      → 输出JSON：{"js": "..."}
+
+  3e. 间隔5秒轮询，直到返回 status=done：
+      browser({ action: "act", ..., request: { kind: "evaluate", fn: "<轮询js>" } })
+      → 返回 {"status":"done","urls":["url1","url2",...]} 时完成
+      → 超时120秒放弃该场景
+
+  3f. 下载第一张图片：
+      curl -o images/scene_XX.webp "<urls[0]>"
+
+  3g. 每5个场景发一次进度更新
+```
+
+**⚠️ 如果Python脚本输出的JS中中文是乱码（Windows编码问题），用以下方法解决：**
+```powershell
+# 方法1：设置UTF-8编码后再执行
+chcp 65001
+python D:\video-analysis\scripts\jimeng_fetch_gen.py ...
+
+# 方法2：用Python直接读取输出
+python -c "import subprocess,json; r=subprocess.run(['python','D:\\video-analysis\\scripts\\jimeng_fetch_gen.py','--action','generate','--prompt','xxx','--ratio','16:9','--json'],capture_output=True,text=True,encoding='utf-8'); print(r.stdout)"
+```
+
+**比例参数映射：**
+
+| 比例 | image_ratio | 宽x高 |
+|------|------------|--------|
+| 1:1  | 1 | 2048x2048 |
+| 3:4  | 3 | 1536x2048 |
+| 4:3  | 4 | 2048x1536 |
+| 9:16 | 5 | 1440x2560 |
+| 16:9 | 6 | 2560x1440 |
+
+**⚠️ 抖音视频一律生成横屏图 16:9（image_ratio=6, 2560x1440）**
+
+**注意事项：**
+- 脚本已内置sign签名算法（MD5逆向），不需要自己算sign
+- 频率控制：每次生图间隔2-3秒
+- 轮询间隔：5秒一次，超时120秒
+- 模型：`high_aes_general_v41`（高质量通用）
+- 每次生成4张图，取第一张下载
+- 详细文档见 `skills/jimeng-fetch/SKILL.md`
+
+**📸 图片预览（必须步骤，不影响继续生图）：**
+生图过程中，每完成5张图就随机挑2-3张发送给用户预览，让用户看到生图效果。发送方式：
+```
+message({ action: "send", message: "🎨 即梦生图进度 X/Y，预览几张：", media: "D:\\video-analysis\\output\\{主题}\\images\\scene_XX.webp" })
+```
+- 预览不阻塞生图流程，发完继续下一张
+- 如果用户反馈风格不对，暂停生图等指示
 
 #### 5.1.1 生成质量校验
 
@@ -284,22 +426,6 @@ python D:\video-analysis\scripts\jimeng_gen.py prompts.json -o images/
 ```
 
 5. **保存路径**：`D:\video-analysis\output\{主题}\quality_log.json`
-
-**即梦API关键参数（子代理必读，多次出错的地方）：**
-
-| 参数 | ✅ 正确 | ❌ 常见错误 |
-|------|---------|------------|
-| req_key | `jimeng_t2i_v40` | `jimeng_high_aes_general_v21_L` |
-| task_id位置 | `resp['data']['task_id']` | `resp['task_id']` |
-| status位置 | `r['data']['status']` | `r['status']`（永远为空！） |
-| image_urls位置 | `r['data']['image_urls']` | `r['image_urls']` |
-| 环境变量 | `VOLC_AK` / `VOLC_SK` | `VOLC_ACCESSKEY` |
-| 必要参数 | `logo_info: {add_logo: False}` | `negative_prompt, seed, scale, ddim_steps` |
-
-**所有响应数据都在 `data` 字段里，不在顶层！**
-
-排查详情见：`memory/jimeng-api-fix.md`
-标准脚本：`D:\video-analysis\scripts\jimeng_gen.py`
 
 ### 5.2 TTS配音（与5.1并行）
 
@@ -387,73 +513,91 @@ ffmpeg -y -i raw_video.mp4 -vf "subtitles='subs.srt':force_style='...'" -c:v lib
 
 ### 字幕烧录（必须步骤）
 
-视频必须烧录白色字幕，样式参考奇异史：
+视频必须烧录白色字幕，样式参考奇异史：单行、无标点、抖音体。
+
+**⚠️ 字幕生成核心原则：音频驱动 + 原始文案（方案二）**
+
+不依赖ASR识别文字内容（避免错别字），只借ASR的时间对齐能力：
+```
+原始文案(已有) → TTS生成音频 → Whisper/FunASR只取时间戳 → 用原始文案 + 时间戳生成SRT
+```
 
 **字幕生成流程：**
-1. 从合成好的视频（含BGM+配音）中提取音频
-2. 用**FunASR Paraformer-zh**对提取的音频生成SRT字幕（**不要用Whisper！** Paraformer中文错别字率远低于Whisper，详见 memory/asr-comparison.md）
-3. 用FFmpeg subtitles滤镜烧录到视频上
+1. 文案按句拆分为列表：`["句子1", "句子2", ...]`（拆分时去掉所有标点）
+2. TTS生成完整音频
+3. 从合成好的视频（含BGM+配音）中提取音频
+4. 用**FunASR Paraformer-zh**对提取的音频生成带时间戳的结果
+5. **丢弃ASR识别的文字，只保留每句的起止时间戳**
+6. 将原始文案句子 + ASR时间戳一一配对，生成SRT
+7. 用FFmpeg subtitles滤镜烧录到视频上
 
-**ASR模型选择（重要！）：**
+**为什么这样做：**
+- TTS语速不固定，不能靠字数估算时间
+- ASR（无论Whisper还是FunASR）中文识别都有错别字
+- 原始文案本身就是正确的，只需要ASR提供时间对齐
+- 这样字幕和声音天然同步，且零错别字
 
-| 模型 | 中文准确率 | 显存 | 速度 | 标点 | 推荐 |
-|------|-----------|------|------|------|------|
-| **FunASR Paraformer-zh** | ⭐⭐⭐⭐⭐ | 1-2GB | RTF 0.035 | ✅ | 🏆 首选 |
-| **FunASR SenseVoice-Small** | ⭐⭐⭐⭐⭐ | ~1GB | RTF 0.031 | ✅ | 🥈 备选（带情感标签） |
-| **Whisper small/medium** | ⭐⭐⭐ | 2GB | RTF ~0.17 | ❌ | ❌ 禁用 |
+**ASR模型选择（用于时间对齐）：**
 
-实测对比（银针试毒60秒）：Whisper 7处错（披霜/鹤鼎红/剑血蜂猴等），Paraformer仅2处小错，SenseVoice 3处。详见 `memory/asr-comparison.md`。
+| 模型 | 时间戳精度 | 显存 | 速度 | 推荐 |
+|------|-----------|------|------|------|
+| **FunASR Paraformer-zh** | ⭐⭐⭐⭐⭐ | 1-2GB | RTF 0.035 | 🏆 首选 |
+| **FunASR SenseVoice-Small** | ⭐⭐⭐⭐ | ~1GB | RTF 0.031 | 🥈 备选 |
 
 **安装：**
 ```bash
 pip install funasr modelscope torch torchaudio
 ```
-> ⚠️ FunASR 1.3.1 的 `load_pretrained_model.py` line 44 有 `copy.deepcopy` 导致内存翻倍，内存紧张时需手动去掉。
 
-**FunASR字幕生成代码：**
+**字幕生成代码（方案二：原始文案+ASR时间戳）：**
 ```python
+import re
 from funasr import AutoModel
 
-# 初始化（首次会下载模型约2GB：主模型+VAD+标点）
+# 1. 原始文案按句拆分（去标点）
+def split_sentences(script_text):
+    """按句号、问号、感叹号等拆分，去掉所有标点"""
+    sentences = re.split(r'[。！？\n]+', script_text)
+    sentences = [re.sub(r'[，、；：""''……——《》（）\(\)「」【】]', '', s).strip() for s in sentences]
+    return [s for s in sentences if s]
+
+# 2. ASR获取时间戳
 asr_model = AutoModel(
     model="paraformer-zh",
     vad_model="fsmn-vad",
     punc_model="ct-punc",
 )
-
-# 生成带时间戳的结果
 result = asr_model.generate(input="extracted_audio.wav")
 
-# 转为SRT格式
-def to_srt(result):
+# 3. 提取ASR时间戳（丢弃ASR文字）
+asr_segments = result[0]["sentence_info"]
+timestamps = [(seg["start"], seg["end"]) for seg in asr_segments]
+
+# 4. 原始文案 + 时间戳配对生成SRT
+original_sentences = split_sentences(script_text)
+
+def to_srt(sentences, timestamps):
     srt_lines = []
-    for i, seg in enumerate(result[0]["sentence_info"], 1):
-        start_ms = seg["start"]
-        end_ms = seg["end"]
-        text = seg["text"]
+    # 如果句子数和时间戳数不一致，按较少的来配对
+    count = min(len(sentences), len(timestamps))
+    for i in range(count):
+        start_ms, end_ms = timestamps[i]
+        text = sentences[i]
         start_t = f"{start_ms//3600000:02d}:{(start_ms%3600000)//60000:02d}:{(start_ms%60000)//1000:02d},{start_ms%1000:03d}"
         end_t = f"{end_ms//3600000:02d}:{(end_ms%3600000)//60000:02d}:{(end_ms%60000)//1000:02d},{end_ms%1000:03d}"
-        srt_lines.append(f"{i}\n{start_t} --> {end_t}\n{text}\n")
+        srt_lines.append(f"{i+1}\n{start_t} --> {end_t}\n{text}\n")
     return "\n".join(srt_lines)
 
-# 写入SRT文件
 with open("subs.srt", "w", encoding="utf-8") as f:
-    f.write(to_srt(result))
+    f.write(to_srt(original_sentences, timestamps))
 ```
 
-**热词增强**（提升专业术语准确率）：
+**热词增强**（提升时间戳对齐精度）：
 ```python
 result = asr_model.generate(
     input="extracted_audio.wav",
     hotword="三氧化二砷 砒霜 鹤顶红 见血封喉"  # 按视频内容填写
 )
-```
-
-**备选方案：SenseVoice-Small**
-```python
-model = AutoModel(model="iic/SenseVoiceSmall", trust_remote_code=True)
-result = model.generate(input="audio.wav", language="zh", use_itn=True)
-# 输出可能含标签如 <|ANGRY|>，需后处理去除
 ```
 
 **字幕样式参数（ASS force_style）：**
@@ -470,27 +614,12 @@ Alignment=2  (底部居中)
 MarginV=3    (紧贴底部)
 ```
 
-**字幕后处理（必须步骤）：**
-FunASR生成SRT后，必须用Python后处理**去掉所有中文标点**：
-```python
-import re
-def remove_cn_punctuation(text):
-    return re.sub(r'[。，、！？；：""''……——《》]', '', text)
-
-# 读取SRT，逐行处理
-with open('subs.srt', 'r', encoding='utf-8') as f:
-    content = f.read()
-content = remove_cn_punctuation(content)
-with open('subs.srt', 'w', encoding='utf-8') as f:
-    f.write(content)
-```
-
 **关键规则：**
 - 每条字幕**严格只一行，不允许换行**（≤15字为佳）
-- 字幕按音频内容时间戳出现（FunASR默认行为，不要手动调整时间轴）
+- **不要标点**——文案拆分时就去掉所有中文标点
 - 字体使用**DouyinSans Bold（抖音体）**，FontSize=13
-- **字幕必须从最终视频音频生成**，不能从原始TTS音频生成（BGM混合后时间轴可能偏移）
-- **ASR用FunASR Paraformer-zh**（不用Whisper），语言自动识别中文
+- **字幕必须从最终视频音频生成时间戳**，不能从原始TTS音频（BGM混合后时间轴可能偏移）
+- ASR只用于获取时间戳，文字内容用原始文案（零错别字）
 
 **FFmpeg烧录命令：**
 ```bash
@@ -682,7 +811,6 @@ ffmpeg -i video_only.mp4 -i tts_audio.m4a -i bgm.mp3 \
 - **博主数据缓存**：videos.json增量更新，不重复抓取
 - **画风模板缓存**：`style_template.json` 存博主视觉风格+内容类型，后续同博主视频直接复用
 - **Few-shot文案缓存**：`copywriting_examples.json` 存博主典型文案片段，同博主不重复提取
-- **BGM本地缓存**：`D:\video-analysis\bgm\` 下载一次永久复用
 - **TTS声音固定**：zh-CN-YunxiNeural，不需要每次选择
 
 ### 减少token消耗

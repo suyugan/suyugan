@@ -1,9 +1,38 @@
 ﻿---
 name: douyin-clone
-description: 复刻抖音博主完整流程。从分析目标博主视频风格、选题规律、数据表现，到生成原创文案、AI配图、TTS配音、BGM合成、最终视频输出。当用户说"复刻博主"、"模仿抖音号"、"分析抖音博主"、"做一个类似XX的视频"时触发。
+description: 复刻抖音博主完整流程。从分析目标博主视频风格、选题规律、数据表现，到生成原创文案、AI配图、TTS配音、BGM合成、最终视频输出。当用户说"复刻博主"、"模仿抖音号"、"分析抖音博主"、"做一个类似XX的视频"、发抖音链接+「复刻」时触发。
 ---
 
 # 复刻抖音博主
+
+## 🚀 快速复刻模式（推荐）
+
+**输入**：一个抖音视频链接 + 「复刻」指令
+**系统自动完成**：分析视频风格 → 写原创文案 → 生成配图 → TTS配音 → BGM混音 → 字幕烧录 → 合成视频 → 交付
+
+### 触发方式
+用户只需：
+1. 发一个抖音视频链接
+2. 说「复刻」
+
+### 自动判断模式
+- **单视频链接 + 复刻**：分析该视频的风格+内容 → 同主题/相关主题写原创文案 → 用提取的风格模板生成配图 → TTS+BGM+字幕 → 合成视频交付
+- **博主主页链接 + 复刻**：分析博主多个视频 → 提取统一风格 → 推荐选题 → 用户选题后生成视频
+- **单视频链接 + 「复刻这个博主」**：先从该视频找到博主 → 抓取博主多个视频 → 走博主复刻流程
+
+### 单视频快速复刻流程
+```
+1. 下载视频 + 抽帧 + 提取音频 + FunASR转录
+2. AI逐帧分析画面，提取视觉风格模板（画风/色调/构图/光影/质感/文字排版）
+3. 分析文案结构（开头hook类型/正文节奏/结尾套路）
+4. 基于同主题写原创文案（模仿该视频的文案风格）
+5. 用提取的风格模板生成配图（即梦）
+6. TTS配音 + BGM混音（旁白volume=2.0, BGM volume=3.0）
+7. 字幕烧录
+8. 合成视频 → 上传腾讯云 → 交付高清链接 + 本地路径
+```
+
+---
 
 完整流程分7个阶段，按顺序执行。每个阶段完成后向用户汇报进度。
 **TTS和生图可并行执行以提高效率。**
@@ -114,9 +143,114 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
 
 ---
 
-## 阶段二：AI分析出报告
+## 阶段二：AI分析出报告（含视频抽帧深度风格分析）
 
-**需要token的部分：** 读取 data_report.md（+ 可选的转录文本），由AI生成完整分析报告，包括：
+### 📹 视频抽帧深度风格分析（阶段二核心升级）
+
+**不再只从封面图分析风格！改为下载目标视频，逐帧分析画面，提取深度视觉风格模板。**
+
+**流程：**
+
+#### 步骤1：下载目标视频
+```powershell
+# 选取博主点赞Top3的代表性视频（或快速复刻模式下的单个目标视频）
+$body = '{"url":"抖音视频链接"}'
+$data = Invoke-RestMethod -Uri "http://localhost:18810/api/hybrid/video_data" -Method POST -ContentType "application/json" -Body $body
+
+# 从返回数据中提取无水印视频URL并下载
+$videoUrl = $data.data.video.play_addr.url_list[0]
+Invoke-WebRequest -Uri $videoUrl -OutFile "D:\video-analysis\{博主名}\ref_video.mp4"
+```
+
+#### 步骤2：ffmpeg抽帧
+```powershell
+# 创建帧目录
+New-Item -ItemType Directory -Force -Path "D:\video-analysis\{博主名}\frames"
+
+# 短视频（≤3分钟）：每5秒抽一帧
+ffmpeg -i ref_video.mp4 -vf "fps=1/5" "D:\video-analysis\{博主名}\frames\frame_%03d.jpg"
+
+# 长视频（>3分钟）：每10秒抽一帧
+ffmpeg -i ref_video.mp4 -vf "fps=1/10" "D:\video-analysis\{博主名}\frames\frame_%03d.jpg"
+```
+
+#### 步骤3：提取音频 + FunASR转录
+```powershell
+# 提取音频（16kHz单声道WAV，FunASR要求）
+ffmpeg -i ref_video.mp4 -vn -acodec pcm_s16le -ar 16000 -ac 1 "D:\video-analysis\{博主名}\ref_audio.wav"
+
+# FunASR转录（Paraformer-zh，带VAD和标点）
+python -c "from funasr import AutoModel; m=AutoModel(model='paraformer-zh',vad_model='fsmn-vad',punc_model='ct-punc'); r=m.generate(input='D:\\video-analysis\\{博主名}\\ref_audio.wav'); print(r[0]['text'])"
+```
+- 转录结果保存到 `D:\video-analysis\{博主名}\ref_transcript.txt`
+
+#### 步骤4：AI逐帧分析画面，提取统一视觉风格模板
+用AI视觉能力（Claude/Gemini）读取所有抽帧图片，逐帧分析并提取统一的视觉风格：
+
+**分析维度：**
+| 维度 | 分析内容 |
+|------|---------|
+| **画风** | 写实/插画/漫画/扁平/水彩/3D等，线条粗细、轮廓处理 |
+| **色调** | 主色调、配色方案、饱和度、明度倾向 |
+| **构图** | 居中/三分法/对称/留白位置、主体占比 |
+| **光影** | 光源方向、明暗对比度、阴影处理方式 |
+| **质感** | 颗粒感/平滑/纸质/数字感、纹理特征 |
+| **文字排版** | 字体风格、大小比例、位置布局、颜色搭配 |
+
+**提取要求：**
+- 逐帧分析后**取交集**，提取所有帧**共同的**视觉特征作为统一风格模板
+- 忽略个别帧的特殊场景差异，提取底层一致的风格DNA
+- 生成 `style_positive`（正向风格提示词）和 `style_negative`（反向提示词）
+
+#### 步骤5：分析文案结构
+从转录文本中提取文案结构模板：
+
+| 结构元素 | 提取内容 |
+|---------|---------|
+| **开头hook类型** | 反问式/共鸣式/悬念式/数据冲击式/反常识式 |
+| **正文节奏** | 论点-论据交替/递进深入/故事线/对比反转 |
+| **结尾套路** | 金句收尾/引导互动/情感升华/悬念钩子 |
+| **语气特点** | 口语化程度、人称视角、情绪基调 |
+| **节奏特征** | 句子长短交替规律、停顿位置 |
+
+#### 步骤6：保存分析结果
+
+**转录结果存为few-shot样本**：
+```powershell
+# 将转录文本直接存为 copywriting_examples.json（与现有格式兼容）
+# 从转录中提取开头（前3秒对应文字）、正文代表段、结尾（最后一句）
+```
+
+**所有风格信息写入 style_template.json**：
+```json
+{
+  "content_type": "配图口播",
+  "art_style": "暗色调数字绘画，日式写实剧画风格",
+  "color_tone": "深墨绿黑灰为主色调，微弱暖黄点缀",
+  "composition": "居中构图，人物主体占画面60%",
+  "lighting": "戏剧性电影光影，强烈明暗对比",
+  "texture": "粗犷钢笔线条，密集排线阴影",
+  "text_layout": "无画面内文字，字幕在底部",
+  "atmosphere": "黑暗、悬疑、历史感",
+  "aspect_ratio": "9:16",
+  "video_size": [1080, 1920],
+  "style_positive": "（从逐帧分析提取的完整正向风格提示词）",
+  "style_negative": "（从逐帧分析提取的反向提示词）",
+  "copywriting_structure": {
+    "hook_type": "反常识疑问",
+    "body_rhythm": "论点-史料佐证-递进",
+    "ending_pattern": "金句收尾+引导互动",
+    "tone": "叙事者视角，沉稳权威，口语化",
+    "avg_sentence_length": 15
+  },
+  "source_video": "分析来源视频链接",
+  "extracted_at": "2026-02-16"
+}
+```
+
+---
+
+**需要token的部分：** 读取 data_report.md + 抽帧分析结果 + 转录文本，由AI生成完整分析报告，包括：
 - 博主风格特征、人设定位
 - 选题规律与爆款共性
 - 文案风格与语气特点
@@ -488,7 +622,7 @@ python scripts/compose_video.py -i images -n narration.mp3 -b bgm.mp3 -o final.m
 
 **步骤1：混合音频**（BGM+旁白）
 ```bash
-ffmpeg -y -i narration.mp3 -i bgm.mp3 -filter_complex "[0:a]volume=1.0[voice];[1:a]volume=0.25,afade=t=in:st=0:d=2[music];[voice][music]amix=inputs=2:duration=first[a]" -map "[a]" -c:a aac -b:a 192k mixed_audio.m4a
+ffmpeg -y -i narration.mp3 -i bgm.mp3 -filter_complex "[0:a]volume=2.0[voice];[1:a]volume=3.0,afade=t=in:st=0:d=2[music];[voice][music]amix=inputs=2:duration=first[a]" -map "[a]" -c:a aac -b:a 192k mixed_audio.m4a
 ```
 
 **步骤2：合成图片+音频→原始视频**
@@ -862,9 +996,9 @@ form = {
 
 ```python
 # 合成：图片/视频素材 + TTS音频 + BGM混合
-# BGM 音量降低到 20-30%，人声为主
+# BGM混音参数：旁白volume=2.0，BGM volume=3.0
 ffmpeg -i video_only.mp4 -i tts_audio.m4a -i bgm.mp3 \
-    -filter_complex "[1:a]volume=1.0[voice];[2:a]volume=0.25[music];[voice][music]amix=inputs=2:duration=first[a]" \
+    -filter_complex "[1:a]volume=2.0[voice];[2:a]volume=3.0[music];[voice][music]amix=inputs=2:duration=first[a]" \
     -map 0:v -map "[a]" -c:v copy -c:a aac -movflags +faststart final.mp4
 ```
 

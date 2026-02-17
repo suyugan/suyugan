@@ -128,12 +128,18 @@ sessions_spawn({
 | 2-2.5 | `phases/phase2-analysis.md` | AI分析报告 + 风格模板提取 + 推荐选题 |
 | 3 | `phases/phase3-script.md` | 写文案 |
 | 4-4.5 | `phases/phase4-scenes.md` | 拆分场景 + 生成提示词 + 风格样片 |
-| 5 | `phases/phase5-assets.md` | 生成素材（即梦生图/视频/Remotion/TTS/BGM） |
+| 5(通用) | `phases/phase5-common.md` | TTS配音 + BGM提取 + 质量校验（所有模式共用） |
+| 5a | `phases/phase5a-jimeng-image.md` | 即梦AI配图（配图口播模式） |
+| 5b | `phases/phase5b-jimeng-video.md` | 即梦视频生成（视频模式） |
+| 5c | `phases/phase5c-remotion.md` | Remotion动画生成（动画模式） |
 | 6-7 | `phases/phase6-compose.md` | 合成视频 + 上传 + 质量评估 + 发布 |
 
 ### 子代理Spawn时的读取规则
 - **子代理1（分析+文案）**：读 `phases/phase1-data.md` + `phases/phase2-analysis.md`
-- **子代理2（TTS+BGM）**：读 `phases/phase5-assets.md` 中的5.2和5.3部分
-- **子代理3（即梦生图）**：读 `phases/phase5-assets.md` 中的5.1部分
+- **子代理2（TTS+BGM）**：读 `phases/phase5-common.md`
+- **子代理3（生图/视频/动画）**：根据content_type读对应文件 + `phases/phase5-common.md`
+  - 配图口播 → `phases/phase5a-jimeng-image.md`
+  - 视频模式 → `phases/phase5b-jimeng-video.md`
+  - 动画模式 → `phases/phase5c-remotion.md`
 - **子代理4（合成+交付）**：读 `phases/phase6-compose.md`
 - **不要读整个SKILL.md！只读对应的phase文件！**

@@ -45,6 +45,60 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - When you make a mistake → document it so future-you doesn't repeat it
 - **Text > Brain** 📝
 
+## 任务流程调度机制（铁律！）
+
+**复杂多阶段任务（如视频复刻）必须用状态文件驱动，不能凭印象推进！**
+
+### 1. 任务启动时创建 task_state.json
+```json
+{
+  "task_id": "xinxinxin-复刻",
+  "skill": "douyin-clone",
+  "skill_path": "skills/douyin-clone/SKILL.md",
+  "work_dir": "D:\\video-analysis\\output\\{主题}\\",
+  "created_at": "2026-02-17T20:00:00+08:00",
+  "current_phase": "1-数据抓取",
+  "content_type": null,
+  "phases": [
+    {"phase": "1-数据抓取", "status": "running", "sub_agent": "session_key"},
+    {"phase": "1.5-类型检测", "status": "pending"},
+    {"phase": "2-风格分析", "status": "pending"},
+    {"phase": "2.5-推荐选题", "status": "pending", "requires_user": true},
+    {"phase": "3-写文案", "status": "pending"},
+    {"phase": "4-拆场景+提示词", "status": "pending"},
+    {"phase": "4.5-风格样片", "status": "pending"},
+    {"phase": "5-素材生成", "status": "pending", "branch": null},
+    {"phase": "5.2-TTS配音", "status": "pending"},
+    {"phase": "5.3-BGM", "status": "pending"},
+    {"phase": "6-合成视频", "status": "pending"},
+    {"phase": "6.5-上传", "status": "pending"},
+    {"phase": "6.8-质量评估", "status": "pending"},
+    {"phase": "7-发布", "status": "pending"}
+  ]
+}
+```
+
+### 2. 子代理完成后，主会话必须：
+1. **更新task_state.json**：标记完成、记录产出物路径
+2. **读SKILL.md对应的下一阶段章节**（不靠记忆！）
+3. **根据content_type选分支**：
+   - 配图口播 → 5.1即梦生图
+   - 动画模式 → 5.1c Remotion
+   - 混剪 → 混剪流程
+   - 视频模式 → 5.1b即梦视频
+4. **requires_user=true的阶段必须等用户确认**，不能自动跳过
+5. **spawn下一个子代理时，从SKILL.md抄对应步骤原文到task**，禁止自由发挥
+
+### 3. spawn子代理的铁律
+- **task内容必须从SKILL.md对应章节复制关键步骤**，不凭记忆写
+- **每个阶段的输入/输出文件路径必须明确写进task**
+- **content_type分支必须在task里写死**，告诉子代理走哪条路
+- **需要用户确认的环节必须在task里注明"输出结果后停止，等用户选择"**
+- **task里写明"每完成一个主要步骤推送进度通知"**
+
+### 4. 状态文件路径
+保存在工作目录下：`D:\video-analysis\output\{主题}\task_state.json`
+
 ## 任务处理规则
 
 **所有频道收到的任务都用 spawn 处理：**

@@ -886,15 +886,19 @@ sessions_spawn({
 }
 ```
 
-#### 步骤2：为每个场景编写Remotion组件描述
-在prompts.json中，每个场景增加 `animation_desc` 字段：
+#### 步骤2：为每个段落编写Remotion组件描述
+**⚠️ 动画模式不需要像配图模式那样拆成25-35个独立场景！**
+动画是连续渲染的，按文案逻辑拆成**5-8个大段落**即可，每个段落内部动画连续流动，段落之间做转场。
+
+在prompts.json中，每个段落增加 `animation_desc` 字段：
 ```json
 {
-  "scene_num": 1,
-  "text": "对应的文案片段",
-  "animation_desc": "火柴人站在中间，双手抱头，身体缓慢下沉，背景渐暗",
-  "elements": ["stickman_sad", "dark_bg_fade"],
-  "duration_sec": 5
+  "section_num": 1,
+  "text": "对应的文案段落（可能包含多句话）",
+  "animation_desc": "火柴人站在中间双手抱头→缓慢下蹲→周围灰色人群从四面八方围上来指指点点→火柴人缩成一团",
+  "key_actions": ["抱头", "下蹲", "人群围绕", "缩成一团"],
+  "transition_to_next": "淡出，背景渐暗",
+  "duration_sec": 15
 }
 ```
 

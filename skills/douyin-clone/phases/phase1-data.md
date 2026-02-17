@@ -39,17 +39,62 @@
 }
 ```
 
-**本地脚本（不需要下载视频）：**
-```powershell
-# 1. 抓取视频列表元数据
-python scripts/fetch_videos.py "博主主页链接或sec_uid" -o D:\video-analysis\{博主名}
+### 数据来源：主页链接 vs 视频链接
 
-# 2. 数据统计（纯数据，不含AI分析）
-python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D:\video-analysis\{博主名}\data_report.md
+**优先用主页链接**。主页能一次获取博主全部视频列表+基本数据，比逐个分析视频高效得多。
+
+#### 方案A：通过主页链接获取数据（推荐）
+
+当用户给的是主页链接（短链接重定向到 `/user/xxx`），流程如下：
+
+**步骤1：解析主页链接，获取sec_uid**
+```
+browser({ action: "navigate", profile: "openclaw", target: "host", targetUrl: "用户给的链接" })
+# 等重定向完成，URL变成 https://www.douyin.com/user/{sec_uid}
+# 从URL提取sec_uid
 ```
 
-- `scripts/fetch_videos.py` — 批量获取所有视频元数据（标题/点赞/评论/收藏/分享/时长/标签/BGM/视频宽高），保存 videos.json
-- `scripts/analyze_data.py` — 纯数据统计 + **推荐选题Top5**（基于高赞/高收藏率关键词组合），输出 data_report.md
+**步骤2：从主页snapshot提取视频ID列表**
+```
+browser({ action: "snapshot", profile: "openclaw", target: "host", targetId: "xxx", compact: true })
+# 从snapshot中找到所有视频链接，提取aweme_id（格式：/video/数字ID）
+# 如果页面只显示部分视频，需要滚动加载更多
+```
+
+**步骤3：从snapshot提取博主基本信息**
+- 昵称、粉丝数、获赞数、关注数、简介、IP属地
+- 直接从snapshot文本中提取，不需要RENDER_DATA
+
+**步骤4：用本地API批量获取每个视频的详细数据**
+```powershell
+# 对每个视频ID调用API
+$body = @{ url = "https://www.douyin.com/video/$vid" } | ConvertTo-Json
+$resp = Invoke-RestMethod -Uri "http://localhost:18810/api/hybrid/video_data" -Method POST -ContentType "application/json" -Body $body
+# 提取：desc, statistics(digg/comment/collect/share), duration, music, tags
+```
+
+**步骤5：保存为标准格式**
+```
+D:\video-analysis\{博主名}\
+├── blogger_info.json   # 博主基本信息
+├── videos.json         # 所有视频元数据（按点赞排序）
+└── data_report.md      # 数据统计报告
+```
+
+#### 方案B：通过单个视频链接获取数据
+
+如果用户给的是单个视频链接，用API直接获取：
+```powershell
+$body = @{ url = "视频链接" } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:18810/api/hybrid/video_data" -Method POST -ContentType "application/json" -Body $body
+```
+然后从视频数据中提取博主sec_uid，再走方案A获取完整主页数据。
+
+#### ⚠️ 主页链接识别规则
+- 短链接（如 `v.douyin.com/xxx`）需要browser打开才能判断是主页还是视频
+- 重定向到 `/user/xxx` → 主页链接，走方案A
+- 重定向到 `/video/xxx` → 视频链接，走方案B
+- **子代理收到主页链接不能报错说"需要视频链接"，必须走方案A处理**
 
 **博主数据缓存**：videos.json只抓一次，后续同博主的新视频只做增量更新（对比已有视频ID，只抓新的）。
 

@@ -1,0 +1,90 @@
+{
+  "jimeng": {
+    "browser_profile": "openclaw",
+    "browser_target": "host",
+    "api_script": "D:\\video-analysis\\scripts\\jimeng_fetch_gen.py",
+    "batch_script": "D:\\video-analysis\\scripts\\jimeng_batch_fetch.py",
+    "video_script": "D:\\video-analysis\\scripts\\jimeng_video_gen.py",
+    "default_ratio": "16:9",
+    "prompt_lang": "zh",
+    "req_key": "jimeng_t2i_v40",
+    "resolution": "3840x2160",
+    "poll_interval_sec": 5,
+    "timeout_sec": 120,
+    "note": "targetId不要写死！每次用 browser tabs 找即梦tab自动获取"
+  },
+  "video_analysis": {
+    "api_url": "http://localhost:18810",
+    "work_dir": "D:\\video-analysis",
+    "fps_short": "1/5",
+    "fps_long": "1/10"
+  },
+  "ffmpeg": {
+    "min_images": 25,
+    "output_flags": "-movflags +faststart",
+    "subtitle_font": "抖音体",
+    "subtitle_style": "白字黑描边",
+    "audio_mix": {
+      "voiceover_volume": 2.0,
+      "bgm_volume": 3.0
+    },
+    "naming": "英文或拼音，禁止中文路径"
+  },
+  "publish": {
+    "upload_script": "C:\\Users\\Administrator\\.openclaw\\workspace\\scripts\\upload_to_cloud.ps1",
+    "base_url": "http://bm.weiixxin.com",
+    "douyin_creator": "https://creator.douyin.com"
+  },
+  "tts": {
+    "tool": "openclaw_tts"
+  },
+  "clone_rules": {
+    "mode": "strict_clone",
+    "note": "复刻=严格模仿，不是参考后原创。每一步产出都要跟原视频对比",
+    "content_type_routing": {
+      "配图口播": "phase5a-jimeng-image.md",
+      "视频模式": "phase5b-jimeng-video.md",
+      "动画模式": "phase5c-remotion.md",
+      "真人出镜": "phase5a-jimeng-image.md（自动转配图口播）",
+      "实拍": "phase5a-jimeng-image.md（自动转配图口播）",
+      "note": "主会话读style_template.json的content_type后决定spawn哪个子代理3，不要写死"
+    },
+    "style_identification": {
+      "method": "具体特征拆解，禁止用单一标签归类",
+      "dimensions": [
+        "线条：粗线条/细线条/无线条",
+        "人物：写实/卡通/Q版/简笔/3D渲染",
+        "上色：平涂/渐变/水彩/无填色",
+        "背景：纯色/场景/留白",
+        "质感：精致/粗犷/极简/手绘感",
+        "色调：暖色/冷色/黑白/高饱和"
+      ],
+      "禁止": "不要用'火柴人''简笔画'等模糊标签一笔带过，必须逐维度描述",
+      "确认流程": "AI自动校验：生成1张测试图与参考帧对比，≥2个维度不一致就调整重试（最多2次），同时发给用户但不阻塞"
+    },
+    "style_validation": {
+      "first_image_must_compare": true,
+      "compare_with": "原视频参考帧（style_template.json中的reference_frames）",
+      "check_points": ["画风一致", "色调一致", "构图类似", "文字排版类似"],
+      "fail_action": "调整提示词重新生成，不要继续批量出图"
+    },
+    "prompt_prefix": "严格模仿参考视频的视觉风格，不要创新，不要改风格。",
+    "script_rules": "文案结构、节奏、口吻必须模仿对标视频，不是只借主题然后自由发挥"
+  },
+  "quality_checks": {
+    "pre_compose": [
+      "字体文件存在（Test-Path验证）",
+      "素材图片 >= 25张",
+      "音频文件存在（配音+BGM）",
+      "分辨率与参考视频一致"
+    ],
+    "post_compose": [
+      "视频能播放、链接不404",
+      "有字幕且字体正确",
+      "有BGM不能只有配音",
+      "图片数量够",
+      "风格匹配（抽查2-3张）",
+      "配图与文案一一对应"
+    ]
+  }
+}

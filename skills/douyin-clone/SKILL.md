@@ -75,8 +75,12 @@ description: 复刻抖音博主完整流程。从分析目标博主视频风格�
 
 **主会话协调逻辑：**
 1. spawn子代理1 → 等完成
-2. 同时spawn子代理2和子代理3 → 等两个都完成
-3. spawn子代理4 → 等完成 → 交付
+2. **读 style_template.json 的 content_type，决定子代理3的类型：**
+   - `content_type == "配图口播"` → spawn即梦生图子代理（读 phase5a-jimeng-image.md）
+   - `content_type == "视频类"` → spawn即梦视频子代理（读 phase5b-jimeng-video.md）
+   - `content_type == "动画类"` → spawn Remotion子代理（读 phase5c-remotion.md）
+3. 同时spawn子代理2（TTS+BGM）和子代理3（按类型） → 等两个都完成
+4. spawn子代理4 → 等完成 → 交付
 
 ### 即梦生图子代理spawn模板：
 ```
@@ -85,7 +89,18 @@ sessions_spawn({
   runTimeoutSeconds: 3600,
   task: `复刻「{博主名}」风格，制作主题「{主题}」的抖音视频。所有输出用中文。
 
-必须先读取技能文档：skills/douyin-clone/SKILL.md，严格按流程执行。
+【第一步：读配置文件！】
+先读 skills/douyin-clone/config.json，所有路径、参数、阈值从这里取，不要写死！
+即梦browser参数：profile和target从config.json读取。targetId每次用 browser tabs 动态获取，禁止写死！
+
+【核心原则：复刻=严格模仿，不是原创！】
+- 画风、色调、构图、文字排版 → 严格对标原视频，不要创新
+- 文案结构、节奏、口吻 → 模仿对标视频的套路，不是自由发挥
+- 风格识别用具体特征维度描述（线条/人物/上色/背景/质感/色调），禁止用"火柴人"等模糊标签
+- 风格识别后，生成1张测试图，AI自动与参考帧对比校验，≥2个维度不一致就调整重试（最多2次）
+- 提示词开头加："严格模仿参考视频的视觉风格，不要创新，不要改风格"
+
+然后按需读对应阶段的phase文件（不要读整个SKILL.md）。
 
 工作目录：D:\\video-analysis\\output\\{主题}\\
 博主数据目录：D:\\video-analysis\\{博主名}\\
@@ -147,6 +162,7 @@ sessions_spawn({
 | 6-7 | `phases/phase6-compose.md` | 合成视频 + 上传 + 质量评估 + 发布 |
 
 ### 子代理Spawn时的读取规则
+- **所有子代理第一步**：读 `config.json` 获取路径、参数、阈值
 - **子代理1（分析+文案）**：读 `phases/phase1-data.md` + `phases/phase2-analysis.md`
 - **子代理2（TTS+BGM）**：读 `phases/phase5-common.md`
 - **子代理3（生图/视频/动画）**：根据content_type读对应文件 + `phases/phase5-common.md`

@@ -68,7 +68,7 @@ This file stores distilled learnings, important decisions, and crucial context t
 
 ### 视频合成注意事项
 - Windows + FFmpeg + 中文路径 = concat乱码，**文件夹一律用英文/拼音命名**
-- 即梦API生图：req_key=jimeng_t2i_v40, 3840x2160，**提示词用中文**（中文模型，中文效果更好）
+- 即梦API生图：req_key=jimeng_t2i_v40, 3840x2160，**提示词用中文**（中文模型，中文效果更好），**支持多并发提交**（批量生图时用jimeng_batch_fetch.py并发跑，不用串行等）
 - 视频合成必须加 `movflags+faststart`，至少25张图
 
 ### 小红书MCP
@@ -82,6 +82,10 @@ This file stores distilled learnings, important decisions, and crucial context t
 - [ ] 风格匹配？（至少抽查2-3张图）
 - [ ] 配图与文案一一对应？
 - **不验收不交付！宁可多花5分钟检查，不能交半成品！**
+
+### 编程任务分级
+- **普通子代理**：照步骤执行的任务（调API、跑命令、合成视频等）
+- **Claude Code**：碰到复杂编程任务时自动切换（调试代码、写新脚本、排查疑难bug、需要反复迭代的问题）
 
 ### 子代理任务规则
 - **多任务并行拆分！** 涉及多个独立子任务（如多张图、多个场景、多个视频）时，每个子任务单独spawn一个子代理并行处理，不要塞进一个子代理里撞token上限

@@ -238,6 +238,23 @@ python skills/phone-control/scripts/phone.py tap 540 1200
 
 ---
 
+## 🚀 标准化上传脚本
+
+所有上传到腾讯云的操作统一用这个脚本，不要再手动scp：
+
+```powershell
+# 上传文件（指定完整远程路径）
+.\scripts\upload_to_cloud.ps1 -LocalPath "D:\xxx\final.mp4" -RemotePath "/var/www/html/videos/xxx.mp4"
+
+# 上传文件（指定远程目录，自动用本地文件名）
+.\scripts\upload_to_cloud.ps1 -LocalPath "D:\xxx\final.mp4" -RemoteDir "/var/www/html/videos/"
+```
+
+脚本自动完成：上传 → chmod修权限 → 验证链接可访问 → 返回URL
+路径：`C:\Users\Administrator\.openclaw\workspace\scripts\upload_to_cloud.ps1`
+
+---
+
 ## 📦 视频交付规则
 - 视频完成后必须同时提供：
   1. **在线链接**（如 http://bm.weiixxin.com/videos/xxx.mp4）

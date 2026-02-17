@@ -154,6 +154,7 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
 | **真人出镜** | 封面有真人，vlog/口播类标签 | 自动转为配图口播模式（抄内容风格，不抄真人） |
 | **实拍** | 封面为实景照片，生活/旅行/美食类标签 | 自动转为配图口播模式 |
 | **视频模式** | 博主使用AI视频/动态画面，非静态配图 | 走阶段5.1b即梦视频生成流程 |
+| **动画模式** | 博主使用火柴人/简笔画/线条动画/MG动画风格 | 走阶段5.1c Remotion动画生成流程 |
 
 3. **真人出镜/实拍类自动转换**：
    - **不需要询问用户，直接自动转为配图口播模式**
@@ -177,6 +178,7 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
    - `真人出镜` → 提示用户确认后走配图口播流程
    - `实拍` → 提示用户选择配图或混剪
    - `视频模式` → 阶段5.1b即梦视频生成 + ffmpeg拼接
+   - `动画模式` → 阶段5.1c Remotion动画生成流程
 
 ---
 
@@ -443,6 +445,9 @@ python scripts/transcribe.py -d . -m medium
 文案写完后，AI自动完成：
 
 1. **拆分片段**：按内容逻辑将文案拆成若干片段，每个片段对应一个画面场景。**⚠️ 数量严禁固定为10个！必须根据文案实际内容结构决定，可能是5个、8个、12个或其他任意数量。不要凑数，不要硬拆，每个片段必须有独立的画面意义。**
+   - **最低25个场景**：2-3分钟的视频至少25个场景，参考视频通常每3-5秒切换画面
+   - 同一段话可以拆成多个不同视角的场景（特写/中景/远景/细节）
+   - 每5-8秒换一个画面，避免一张图撑太久导致观感单调
 2. **生成提示词**：为每个片段生成即梦图片提示词，画面要精准匹配该片段的文案内容
 3. **复用画风模板**：如果 `style_template.json` 存在，读取 `style_positive` 和 `style_negative`，每个场景提示词 = 场景描述 + style_positive。**必须拼接风格模板，不能只写场景描述！**
 4. **输出 prompts.json**：
@@ -485,6 +490,30 @@ python scripts/transcribe.py -d . -m medium
 - 用中文逗号连接
 - style_negative 作为反向提示词传给即梦API（如API支持）
 
+**⚠️ 色彩层次要求（不能只写单色调！）**：
+- 参考视频通常有丰富的色彩细节：自然肤色、暖光点缀、阴影渐变
+- 提示词里必须加明确的色彩指令，如「保留自然肤色和服饰淡彩，暖黄色灯光点缀高光区域，线条有粗细变化，阴影有层次渐变」
+- 不能只说「白色线条蓝色背景」这种粗暴描述
+- 可用参考视频关键帧做img2img/风格参考（如即梦支持图生图），而不是纯文本描述风格
+
+**⚠️ 场景数量要求（必须足够密！）**：
+- 参考视频通常每3-5秒切换一个画面，2分半的视频≈30-50个场景
+- **我们至少要做到25个场景以上**，不能一句话配一张图撑太久
+- 同一段话可以拆成多个视角——比如「你总觉得自己不够好」可拆成：人物低头特写、镜子里倒影、周围人的目光，三个场景讲一句话
+- 文案拆分更细，每5-8秒换一个画面，避免观感单调
+
+**⚠️ 场景脚本表（批量生图前必须先写！）**：
+正式生图前，先写一个场景对照表存到 `scene_table.md`：
+```
+| 序号 | 时间段 | 文案片段 | 画面描述 | 参考帧编号 | 视角/构图 |
+|------|--------|---------|---------|-----------|----------|
+| 1 | 0:00-0:03 | 你有没有发现... | 人物蜷缩在狭小空间 | frame_001 | 俯拍全身 |
+| 2 | 0:03-0:06 | 你对所有人都好... | 人物微笑递出礼物 | frame_002 | 中景正面 |
+| 3 | 0:06-0:08 | 最后过得最惨的是你 | 人物独自坐在角落 | frame_003 | 远景侧面 |
+```
+- 每个画面都要有对标参考帧（从对标视频抽帧中选最接近的）
+- 同一段文案如果超过5秒，必须拆成多个不同视角的场景
+
 **要求**：
 - 每个prompt必须与该片段文案内容强关联，不能泛泛而谈
 - 画面风格保持统一（同一套视觉语言）
@@ -493,22 +522,24 @@ python scripts/transcribe.py -d . -m medium
 
 ## 阶段4.5：提示词对比优化（关键步骤）
 
-**生成提示词后，不要直接进入批量生图！先用1-2个代表性场景做提示词优化迭代。**
+**生成提示词后，不要直接进入批量生图！先用2-3个代表性场景做风格样片测试。**
 
-### 优化流程
+### 风格样片流程（必须步骤！）
 
-1. **选取2个代表性场景**：从prompts.json中选画面差异最大的2个场景（如一个人物特写、一个全景场景）
+1. **选取2-3个代表性场景**：从prompts.json中选画面差异最大的场景（如一个人物特写、一个全景、一个情绪场景）
 
 2. **首轮生图**：用初始提示词通过即梦生成测试图
 
 3. **对比分析**：用AI视觉能力同时读取**原视频帧**和**生成图**，逐维度对比：
    - 画风匹配度（线条、技法是否一致）
+   - **色彩层次**（是否有肤色、暖光、阴影渐变，还是只有单调的线条+底色）
    - 色调匹配度（主色调、饱和度、明暗是否接近）
    - 构图匹配度（主体位置、留白比例）
    - 氛围匹配度（情绪、光影感觉）
    - 质感匹配度（纹理、颗粒感）
 
 4. **针对性优化提示词**：根据对比结果调整提示词
+   - 色彩太单调 → 加「保留自然肤色和服饰淡彩，暖黄色灯光点缀高光区域」
    - 色调偏暖 → 加"冷色调，低饱和"等修正词
    - 线条太光滑 → 加"粗犷笔触，密集排线，铜版画质感"
    - 氛围不够暗 → 加"黑暗背景，强烈明暗对比，chiaroscuro"
@@ -564,15 +595,56 @@ python scripts/transcribe.py -d . -m medium
 - 单张生成JS：`D:\video-analysis\scripts\jimeng_fetch_gen.py`
 - 批量生成：`D:\video-analysis\scripts\jimeng_batch_fetch.py`
 
-**逐步调用流程（子代理必须严格按此执行）：**
+**⚠️ 优先使用并发模式生图！串行太慢，容易撞子代理时间墙。**
+
+**方案A：并发模式（推荐，10张图3-4分钟）**
+
+核心思路：一次性提交所有generate请求（间隔2秒），收集submit_id，然后批量轮询，所有图的生成时间重叠。
 
 ```
 步骤1：获取即梦tab
   browser({ action: "tabs", profile: "openclaw", target: "host" })
   → 找到 url 包含 jimeng.jianying.com 的tab，记下 targetId
 
-步骤2：读取 prompts.json
-  读取所有场景的 prompt 文本
+步骤2：初始化MD5签名函数
+  读取 jimeng_fetch_gen.py 中的 SIGN_JS_HELPER
+  browser evaluate 执行，确保 window.__jimeng_md5 可用
+
+步骤3：读取 prompts.json，获取所有场景的prompt
+
+步骤4：构建并发提交JS
+  在browser evaluate中执行一个大JS，功能：
+  a) 定义 __jimengGen(prompt, submitId) 函数（调用generate API）
+  b) 定义 __jimengPoll(submitIds) 函数（批量查询多个submit_id）
+  c) 快速连续提交所有场景的generate请求（每个间隔2秒用setTimeout错开）
+  d) 收集所有submit_id到 window.__batchSubmitIds
+  e) 提交完毕后自动开始轮询，每5秒批量查一次所有id状态
+  f) 结果存在 window.__batchResults = { sceneNum: {status, url}, ... }
+  g) 全部完成后 window.__batchDone = true
+
+步骤5：每10秒用browser evaluate检查 window.__batchDone 和 window.__batchResults
+
+步骤6：全部done后，从results中获取图片URL，逐个下载保存为 scene_XX.webp
+  Invoke-WebRequest -Uri $url -OutFile "images/scene_XX.webp"
+```
+
+**并发数控制**：3-5个同时提交，间隔2秒，避免触发即梦限流。
+**超时**：单张图轮询超时120秒，整批超时300秒。
+**断点续传**：跳过images/目录中已存在的scene_XX.webp文件。
+
+**并发辅助脚本**：`D:\video-analysis\scripts\jimeng_batch_concurrent.py`
+```powershell
+# 生成执行计划（含所有场景的generate JS和submit_id）
+python D:\video-analysis\scripts\jimeng_batch_concurrent.py --prompts-file prompts.json --scenes 1-22 --ratio 16:9 --output-dir images --action plan
+
+# 生成批量轮询JS（一次查多个submit_id）
+python D:\video-analysis\scripts\jimeng_batch_concurrent.py --action poll-js --submit-ids "id1,id2,id3"
+```
+
+**方案B：串行模式（备用，当并发被限流时降级使用）**
+
+```
+步骤1-2：同上
 
 步骤3：逐个场景生图（循环）
   对每个场景：
@@ -589,15 +661,11 @@ python scripts/transcribe.py -d . -m medium
 
   3d. 生成轮询JS代码：
       python D:\video-analysis\scripts\jimeng_fetch_gen.py --action poll --submit-id "<submit_id>" --json
-      → 输出JSON：{"js": "..."}
 
-  3e. 间隔5秒轮询，直到返回 status=done：
-      browser({ action: "act", ..., request: { kind: "evaluate", fn: "<轮询js>" } })
-      → 返回 {"status":"done","urls":["url1","url2",...]} 时完成
-      → 超时120秒放弃该场景
+  3e. 间隔5秒轮询，直到返回 status=done，超时120秒
 
   3f. 下载第一张图片：
-      curl -o images/scene_XX.webp "<urls[0]>"
+      Invoke-WebRequest -Uri "<urls[0]>" -OutFile "images/scene_XX.webp"
 
   3g. 每5个场景发一次进度更新
 ```
@@ -779,6 +847,161 @@ sessions_spawn({
 })
 ```
 
+### 5.1c Remotion动画生成（当 content_type 为「动画模式」时）
+
+**当对标博主使用火柴人、简笔画、线条动画、MG动画等风格时，用Remotion以代码方式生成动画视频片段。**
+
+**适用场景**：
+- 火柴人动画（SVG骨骼+关节角度控制）
+- 简笔画逐笔绘制效果
+- 线条动画/白板动画
+- 数据可视化动效
+- 文字逐字/逐行出现动效
+- Motion Graphics（MG动画）
+
+**流程**：
+
+#### 步骤1：分析对标视频动画风格
+从对标视频抽帧中提取动画特征：
+- 线条粗细、颜色、背景色
+- 人物造型（火柴人/简笔画/卡通）
+- 运动方式（走路/跑步/手势/表情变化）
+- 转场方式（淡入淡出/滑动/擦除）
+- 文字样式和出现方式
+
+将动画风格参数写入 `style_template.json`：
+```json
+{
+  "content_type": "动画模式",
+  "animation_style": {
+    "character_type": "火柴人",
+    "line_color": "#FFFFFF",
+    "line_width": 3,
+    "bg_color": "#1a1a2e",
+    "accent_color": "#e94560",
+    "motion_style": "简洁流畅",
+    "transition": "淡入淡出",
+    "text_animation": "逐字出现"
+  }
+}
+```
+
+#### 步骤2：为每个场景编写Remotion组件描述
+在prompts.json中，每个场景增加 `animation_desc` 字段：
+```json
+{
+  "scene_num": 1,
+  "text": "对应的文案片段",
+  "animation_desc": "火柴人站在中间，双手抱头，身体缓慢下沉，背景渐暗",
+  "elements": ["stickman_sad", "dark_bg_fade"],
+  "duration_sec": 5
+}
+```
+
+#### 步骤3：Remotion项目生成
+技能文档参考：`skills/remotion-video/SKILL.md`
+
+```
+1. 初始化Remotion项目（如不存在）：
+   D:\video-analysis\output\{主题}\remotion\
+
+2. 为每个场景创建React组件：
+   src/scenes/Scene01.tsx ~ SceneXX.tsx
+   
+   每个组件内：
+   - SVG绘制人物/场景元素
+   - useCurrentFrame() + interpolate() 控制动画
+   - 关键帧动画：位置、旋转、缩放、透明度
+   
+3. 主组件 Composition 按时间线串联所有场景
+
+4. 渲染输出：
+   npx remotion render src/index.ts Main --output video_only.mp4
+```
+
+**火柴人SVG模板**：
+```tsx
+// 基础火柴人组件
+const StickMan = ({ x, y, headTilt, armAngle, legAngle, emotion }) => (
+  <g transform={`translate(${x}, ${y})`}>
+    {/* 头 */}
+    <circle cx={0} cy={-60} r={15} fill="none" stroke="white" strokeWidth={3} />
+    {/* 表情 */}
+    {emotion === 'sad' && <>
+      <line x1={-5} y1={-65} x2={-3} y2={-63} stroke="white" strokeWidth={2} />
+      <line x1={5} y1={-65} x2={3} y2={-63} stroke="white" strokeWidth={2} />
+      <path d="M -5,-55 Q 0,-58 5,-55" fill="none" stroke="white" strokeWidth={2} />
+    </>}
+    {/* 身体 */}
+    <line x1={0} y1={-45} x2={0} y2={0} stroke="white" strokeWidth={3} />
+    {/* 手臂 */}
+    <line x1={0} y1={-35} x2={-25} y2={-35 + armAngle} stroke="white" strokeWidth={3} />
+    <line x1={0} y1={-35} x2={25} y2={-35 + armAngle} stroke="white" strokeWidth={3} />
+    {/* 腿 */}
+    <line x1={0} y1={0} x2={-20} y2={30 + legAngle} stroke="white" strokeWidth={3} />
+    <line x1={0} y1={0} x2={20} y2={30 + legAngle} stroke="white" strokeWidth={3} />
+  </g>
+);
+```
+
+**动画插值示例**：
+```tsx
+const frame = useCurrentFrame();
+const fps = useVideoConfig().fps;
+
+// 火柴人缓慢下沉
+const y = interpolate(frame, [0, fps * 3], [200, 280], { extrapolateRight: 'clamp' });
+// 手臂下垂
+const armAngle = interpolate(frame, [0, fps * 2], [0, 20], { extrapolateRight: 'clamp' });
+// 背景渐暗
+const bgOpacity = interpolate(frame, [0, fps * 3], [0.3, 0.8], { extrapolateRight: 'clamp' });
+```
+
+#### 步骤4：合成完整视频
+```
+1. Remotion渲染动画视频（无音频）→ video_only.mp4
+2. 混合TTS配音 + BGM → mixed_audio.m4a（同标准流程）
+3. 合并视频+音频：
+   ffmpeg -y -i video_only.mp4 -i mixed_audio.m4a -c:v copy -c:a aac -movflags +faststart raw_video.mp4
+4. FunASR时间戳 + 原始文案 → subs.srt（同标准流程）
+5. 烧录字幕 → final.mp4
+6. 上传腾讯云 → 交付
+```
+
+**与配图模式的区别**：
+| 环节 | 配图模式 | 动画模式 |
+|------|---------|---------|
+| 素材生成 | 即梦AI生图 | Remotion代码渲染 |
+| 画面切换 | 静态图+Ken Burns | 连续动画，自然过渡 |
+| 风格控制 | 提示词+style_positive | SVG/CSS代码精确控制 |
+| 适合内容 | 写实插画、艺术风格 | 火柴人、简笔画、MG动画 |
+| 其他环节 | 完全相同（TTS、BGM、字幕、上传） | 完全相同 |
+
+**子代理spawn模板**：
+```
+sessions_spawn({
+  label: "{主题}-视频制作(动画模式)",
+  task: `复刻「{博主名}」风格，制作主题「{主题}」的抖音视频（动画模式）。所有输出用中文。
+
+必须先读取技能文档：
+1. skills/douyin-clone/SKILL.md — 完整复刻流程
+2. skills/remotion-video/SKILL.md — Remotion渲染指南
+
+工作目录：D:\\video-analysis\\output\\{主题}\\
+Remotion项目：D:\\video-analysis\\output\\{主题}\\remotion\\
+
+该博主为动画模式（火柴人/简笔画/线条动画），使用Remotion生成动画视频：
+1. 读取 style_template.json 的 animation_style 字段
+2. 读取 prompts.json 的每个场景的 animation_desc
+3. 为每个场景创建React+SVG组件，用useCurrentFrame+interpolate做动画
+4. Remotion渲染输出视频
+5. TTS配音 + BGM混音
+6. FunASR字幕同步
+7. 烧录字幕
+8. 上传腾讯云 → 交付高清链接`
+})
+```
+
 #### 5.1.1 生成质量校验
 
 **每张生成的图片必须经过AI视觉校验，确保质量达标后再进入合成阶段。**
@@ -827,13 +1050,179 @@ sessions_spawn({
 
 ### 5.2 TTS配音（与5.1并行）
 
-**本地脚本：**
-```powershell
-python scripts/generate_tts.py script.md -o narration.mp3
+**⚠️ 配音必须复刻对标博主的声音特征！不再使用固定声音！**
+
+#### 5.2.1 声音特征分析（阶段二完成，写入style_template.json）
+
+从对标视频的音频中分析声音特征：
+```python
+# 1. demucs分离出纯人声
+# vocals.wav 已在5.3 BGM提取时生成
+
+# 2. 分析声音特征
+import subprocess, json
+
+# 用ffprobe分析音频参数
+result = subprocess.run([
+    'ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', 'vocals.wav'
+], capture_output=True, text=True)
+audio_info = json.loads(result.stdout)
+
+# 3. AI听音分析（用Claude/Gemini分析vocals.wav的前30秒）
+# 分析维度：性别、年龄感、语速、音调高低、情绪基调、口音特点
 ```
 
-- `scripts/generate_tts.py` — 从script.md提取纯文本，edge-tts生成音频
-- **默认声音**：`zh-CN-YunxiNeural`（固定使用，除非用户要求更换）
+将声音特征写入 `style_template.json`：
+```json
+{
+  "voice_style": {
+    "gender": "male",
+    "age_feel": "25-35岁青年",
+    "speed_wpm": 280,
+    "tone": "中低音，沉稳",
+    "emotion": "理性分析，偶尔愤慨",
+    "accent": "标准普通话",
+    "pause_style": "短句间顿挫明显",
+    "volume_ratio": {
+      "voice_db": -12,
+      "bgm_db": -18,
+      "description": "人声明显高于BGM，约6dB差距"
+    }
+  }
+}
+```
+
+#### 5.2.2 音色克隆（GPT-SoVITS，推荐方案）
+
+**用对标博主的人声样本克隆音色，让TTS输出接近博主原声。**
+
+**工具选择**：
+| 工具 | 克隆质量 | 所需样本 | 部署 | 推荐 |
+|------|---------|---------|------|------|
+| **GPT-SoVITS** | ⭐⭐⭐⭐⭐ | 5-30秒 | 本地GPU | 🏆 首选 |
+| **fish-speech** | ⭐⭐⭐⭐ | 10秒 | 本地GPU | 🥈 备选 |
+| **edge-tts匹配** | ⭐⭐ | 不需要 | 云端免费 | 降级方案 |
+
+**GPT-SoVITS克隆流程**：
+```python
+# 前置：pip install GPT-SoVITS（或docker部署）
+# 项目地址：https://github.com/RVC-Boss/GPT-SoVITS
+
+# 步骤1：准备参考音频（从demucs分离的vocals.wav截取10-30秒清晰片段）
+# 选择语速适中、无BGM残留、无杂音的片段
+ffmpeg -y -ss 5 -t 20 -i vocals.wav -acodec pcm_s16le -ar 32000 -ac 1 ref_voice.wav
+
+# 步骤2：零样本推理（zero-shot，无需训练）
+# GPT-SoVITS支持few-shot推理，只需参考音频+参考文本
+from GPT_SoVITS.inference import TTSInference
+
+tts = TTSInference(
+    gpt_model="pretrained_models/gsv-v2final-pretrained/s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
+    sovits_model="pretrained_models/gsv-v2final-pretrained/s2G2333k.pth"
+)
+
+# 参考音频 + 参考文本（对标博主说的那段话）
+tts.synthesize(
+    text="要合成的完整文案文本",
+    ref_audio="ref_voice.wav",
+    ref_text="参考音频对应的文字内容",  # 从转录结果获取
+    output="narration_cloned.wav",
+    speed=1.0  # 语速倍率，根据voice_style.speed_wpm调整
+)
+```
+
+**缓存**：克隆用的参考音频保存到 `D:\video-analysis\{博主名}\ref_voice.wav`，同博主复用。
+
+#### 5.2.3 语速匹配
+
+```python
+# 从对标视频计算语速
+ref_transcript = open("ref_transcript.txt").read()
+ref_duration = 150  # 秒，从ffprobe获取
+ref_char_count = len(ref_transcript.replace(" ", "").replace("\n", ""))
+ref_wpm = ref_char_count / (ref_duration / 60)  # 字/分钟
+
+# 我们的文案
+our_char_count = len(script_text)
+target_duration = our_char_count / ref_wpm * 60  # 目标秒数
+
+# GPT-SoVITS: 调整speed参数
+speed_ratio = target_duration / actual_tts_duration
+
+# edge-tts降级方案: 调整rate参数
+rate = f"+{int((ref_wpm/250 - 1) * 100)}%" if ref_wpm > 250 else f"{int((ref_wpm/250 - 1) * 100)}%"
+```
+
+#### 5.2.4 停顿节奏复刻
+
+```python
+# 从FunASR时间戳分析对标视频的停顿模式
+timestamps = result[0]["timestamp"]
+pauses = []
+for i in range(1, len(timestamps)):
+    gap = timestamps[i][0] - timestamps[i-1][1]
+    if gap > 300:  # 超过300ms算停顿
+        pauses.append({"position": i, "duration_ms": gap})
+
+# 将停顿模式应用到我们的文案中
+# 在对应位置插入SSML停顿标签（edge-tts支持）
+# 或在GPT-SoVITS中通过标点和空格控制停顿
+```
+
+#### 5.2.5 音量匹配
+
+```python
+# 分析对标视频的人声/BGM音量比
+import subprocess
+
+# 测量人声响度（LUFS）
+result = subprocess.run([
+    'ffmpeg', '-i', 'vocals.wav', '-af', 'loudnorm=print_format=json', '-f', 'null', '-'
+], capture_output=True, text=True)
+# 从stderr解析input_i（integrated loudness）
+
+# 测量BGM响度
+result = subprocess.run([
+    'ffmpeg', '-i', 'bgm_clean.wav', '-af', 'loudnorm=print_format=json', '-f', 'null', '-'
+], capture_output=True, text=True)
+
+# 计算差值，合成时保持相同的人声/BGM响度差
+# 写入style_template.json的voice_style.volume_ratio
+```
+
+**混音时应用**：
+```bash
+# 用loudnorm标准化到对标音量
+ffmpeg -y -i narration.wav -i bgm_clean.wav \
+  -filter_complex "[0:a]loudnorm=I={voice_lufs}[voice];[1:a]loudnorm=I={bgm_lufs}[music];[voice][music]amix=inputs=2:duration=first[a]" \
+  -map "[a]" -c:a aac -b:a 192k mixed_audio.m4a
+```
+
+#### 5.2.6 降级方案（无GPU或克隆失败时）
+
+如果GPT-SoVITS不可用，用edge-tts匹配最接近的声音：
+```python
+# 根据voice_style选择最接近的edge-tts声音
+VOICE_MAP = {
+    ("male", "young", "calm"): "zh-CN-YunxiNeural",
+    ("male", "young", "energetic"): "zh-CN-YunjianNeural", 
+    ("male", "mature", "authoritative"): "zh-CN-YunyeNeural",
+    ("female", "young", "warm"): "zh-CN-XiaoxiaoNeural",
+    ("female", "young", "cheerful"): "zh-CN-XiaohanNeural",
+    ("female", "mature", "professional"): "zh-CN-XiaoqiuNeural",
+}
+```
+
+**优先级**：GPT-SoVITS克隆 > fish-speech克隆 > edge-tts匹配
+
+**声音复刻缓存路径**：
+```
+D:\video-analysis\{博主名}\
+├── vocals.wav          # demucs分离的纯人声
+├── ref_voice.wav       # 克隆用参考音频片段（10-30秒）
+├── ref_voice_text.txt  # 参考音频对应的文字
+└── voice_style.json    # 声音特征分析结果（也写入style_template.json）
+```
 
 ### 5.3 BGM（从对标博主视频提取）
 
@@ -1083,6 +1472,17 @@ if (!(Test-Path "C:\Windows\Fonts\DouyinSansBold.ttf")) {
 }
 ```
 如果系统没有抖音体，子代理必须先安装再烧录字幕，**不能用微软雅黑替代**！
+
+**⚠️ 字体打包方案（推荐，不依赖系统安装）：**
+将抖音美好体（DouyinSansBold.ttf）打包到项目目录 `D:\video-analysis\fonts\DouyinSansBold.ttf`，FFmpeg烧字幕时用 `fontsdir` 或 ASS字幕里用绝对路径引用，不依赖系统Fonts目录：
+```bash
+# 方案1：FFmpeg subtitles滤镜指定fontsdir
+ffmpeg -y -i input.mp4 -vf "subtitles='subs.srt':fontsdir='D\\:/video-analysis/fonts':force_style='FontName=DouyinSans Bold,...'" ...
+
+# 方案2：Remotion方案，CSS @font-face引用本地文件
+@font-face { font-family: 'DouyinSans'; src: url('./fonts/DouyinSansBold.ttf'); }
+```
+这样无论在哪台机器上都能正确使用字体，不会回退到系统默认字体。
 
 **⚠️ 字幕字体、大小、位置必须参考对标视频！不要用固定值！**
 

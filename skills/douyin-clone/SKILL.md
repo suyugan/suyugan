@@ -73,7 +73,7 @@ sessions_spawn({
 
 【字幕烧录】
 - 方案二：原始文案去标点 + FunASR时间戳对齐（丢弃ASR文字）
-- 字体：DouyinSans Bold, FontSize=15, 白色+黑色描边, 单行无标点
+- 字体/大小/位置参考对标视频，从style_template.json读取
 
 【视频完成后】
 1. 上传到腾讯云：paramiko sftp到106.55.158.137，路径 /home/ubuntu/www/videos/{主题}.mp4
@@ -235,6 +235,18 @@ python -c "from funasr import AutoModel; m=AutoModel(model='paraformer-zh',vad_m
   "lighting": "戏剧性电影光影，强烈明暗对比",
   "texture": "粗犷钢笔线条，密集排线阴影",
   "text_layout": "无画面内文字，字幕在底部",
+  "subtitle_style": {
+    "font_name": "DouyinSans Bold",
+    "font_size": 15,
+    "primary_colour": "&H00FFFFFF",
+    "outline_colour": "&H00000000",
+    "border_style": 1,
+    "outline": 1,
+    "shadow": 0,
+    "bold": 1,
+    "alignment": 2,
+    "margin_v": 3
+  },
   "atmosphere": "黑暗、悬疑、历史感",
   "aspect_ratio": "9:16",
   "video_size": [1080, 1920],
@@ -1036,15 +1048,38 @@ if (!(Test-Path "C:\Windows\Fonts\DouyinSansBold.ttf")) {
 ```
 如果系统没有抖音体，子代理必须先安装再烧录字幕，**不能用微软雅黑替代**！
 
+**⚠️ 字幕字体、大小、位置必须参考对标视频！不要用固定值！**
+
+**字幕参数提取流程（阶段二分析时完成）：**
+1. 从对标视频抽帧中找到有字幕的帧
+2. AI分析字幕的：字体风格、大小（相对画面比例）、颜色、描边、位置（底部/中部/上部）、距底边距离
+3. 将提取的字幕参数写入 `style_template.json`：
+```json
+{
+  "subtitle_style": {
+    "font_name": "DouyinSans Bold",
+    "font_size": 15,
+    "primary_colour": "&H00FFFFFF",
+    "outline_colour": "&H00000000",
+    "border_style": 1,
+    "outline": 1,
+    "shadow": 0,
+    "bold": 1,
+    "alignment": 2,
+    "margin_v": 3,
+    "notes": "从对标视频帧分析提取的参数"
+  }
+}
+```
+4. 合成时从 `style_template.json` 读取字幕参数，不硬编码
+
+**默认值（仅在无法分析对标视频字幕时使用）：**
 ```
 FontName=DouyinSans Bold
 FontSize=15
 PrimaryColour=&H00FFFFFF  (白色)
 OutlineColour=&H00000000  (黑色描边)
-BorderStyle=1
-Outline=1
-Shadow=0
-Bold=1
+BorderStyle=1, Outline=1, Shadow=0, Bold=1
 Alignment=2  (底部居中)
 MarginV=3    (紧贴底部)
 ```
@@ -1052,14 +1087,14 @@ MarginV=3    (紧贴底部)
 **关键规则：**
 - 每条字幕**严格只一行，不允许换行**（≤15字为佳）
 - **不要标点**——文案拆分时就去掉所有中文标点
-- 字体使用**DouyinSans Bold（抖音体）**，FontSize=15
+- 字体、大小、位置**以对标视频为准**，不自作主张
 - **字幕必须从最终视频音频生成时间戳**，不能从原始TTS音频（BGM混合后时间轴可能偏移）
 - ASR只用于获取时间戳，文字内容用原始文案（零错别字）
 
-**FFmpeg烧录命令：**
+**FFmpeg烧录命令（参数从style_template.json读取）：**
 ```bash
 ffmpeg -y -i input_video.mp4 \
-  -vf "subtitles='path/to/subtitles.srt':force_style='FontName=DouyinSans Bold,FontSize=15,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=1,Shadow=0,Bold=1,Alignment=2,MarginV=3'" \
+  -vf "subtitles='path/to/subtitles.srt':force_style='FontName={font_name},FontSize={font_size},PrimaryColour={primary_colour},OutlineColour={outline_colour},BorderStyle={border_style},Outline={outline},Shadow={shadow},Bold={bold},Alignment={alignment},MarginV={margin_v}'" \
   -c:v libx264 -preset slow -crf 18 \
   -c:a copy \
   -movflags +faststart \

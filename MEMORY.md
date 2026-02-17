@@ -98,7 +98,27 @@ This file stores distilled learnings, important decisions, and crucial context t
 - **AppID**: wx9a447fddc9ba6a59
 - **AppSecret**: REDACTED_WECHAT_SECRET
 
-## 2026-02-08 Updates
+## 2026-02-17 Skill结构优化
+
+### douyin-clone技能文件拆分
+原来76.5KB的SKILL.md拆成模块化结构，子代理只读需要的部分，省80%+ tokens：
+```
+skills/douyin-clone/
+├── SKILL.md (6.9KB 主入口+索引+spawn规则)
+├── phases/
+│   ├── phase1-data.md (3.7KB 抓取数据+类型识别)
+│   ├── phase2-analysis.md (10.2KB AI分析+风格模板+选题)
+│   ├── phase3-script.md (1KB 写文案)
+│   ├── phase4-scenes.md (9.3KB 拆场景+提示词)
+│   ├── phase5-common.md (5.5KB TTS+BGM+质量校验-共用)
+│   ├── phase5a-jimeng-image.md (2.9KB 即梦配图)
+│   ├── phase5b-jimeng-video.md (2KB 即梦视频)
+│   ├── phase5c-remotion.md (3.4KB Remotion动画)
+│   └── phase6-compose.md (23.7KB 合成+上传+发布)
+```
+
+### AGENTS.md精简
+14.2KB → 2.7KB，去掉skill专属内容和冗余规则，每轮对话省12KB上下文。
 
 ### Key Accomplishments
 - **Tencent Cloud Server Fixes:** Successfully debugged and re-deployed `server.js` on Tencent Cloud (106.55.158.137) via SSH+Python, addressing API path and image URL issues. Also updated Nginx `server_name` and verified DNS.

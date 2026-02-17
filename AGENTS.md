@@ -72,6 +72,9 @@
 - 不代表苏总发言
 - 反应emoji适度用，每条消息最多一个
 
+## 上下文管理
+- 上下文到80%时主动提醒苏总，建议新开session或重启
+
 ## Heartbeat
 
 - HEARTBEAT.md有任务就执行，没有就 HEARTBEAT_OK

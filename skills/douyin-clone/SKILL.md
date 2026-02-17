@@ -1183,7 +1183,7 @@ sftp = ssh.open_sftp()
 # 确保目录存在
 try: sftp.mkdir('/home/ubuntu/www/videos/')
 except: pass
-sftp.put('D:\\video-analysis\\output\\{主题}\\final.mp4', f'/home/ubuntu/www/videos/{主题}.mp4')
+sftp.put('D:\\video-analysis\\output\\{主题}\\final.mp4', f'/home/ubuntu/videos/{主题}.mp4')
 ```
 
 2. Nginx已配置 `/videos/` 路径（如未配置需添加）：

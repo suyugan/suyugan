@@ -25,6 +25,9 @@ This file stores distilled learnings, important decisions, and crucial context t
 ## 发布规则
 - **「写推文」/「发布推文」= 默认发布到微信公众号「苏煜淦」**（所有频道生效，2026-02-14起）
 
+## 防错规则
+- **Session重启后必须回查最近消息**：重启/过期后，检查频道最近未处理的消息，避免漏任务（2026-02-18 教训）
+
 ## 苏总习惯与要求
 - 账号密码双重存储：本地 + 腾讯云 `/home/ubuntu/.credentials/accounts.md`
 - 需要账号密码先SSH服务器查，没有再问苏总

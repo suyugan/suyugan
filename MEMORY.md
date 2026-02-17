@@ -65,7 +65,7 @@ This file stores distilled learnings, important decisions, and crucial context t
 
 ### 视频合成注意事项
 - Windows + FFmpeg + 中文路径 = concat乱码，**文件夹一律用英文/拼音命名**
-- 即梦API生图：req_key=jimeng_t2i_v40, 3840x2160
+- 即梦API生图：req_key=jimeng_t2i_v40, 3840x2160，**提示词用中文**（中文模型，中文效果更好）
 - 视频合成必须加 `movflags+faststart`，至少25张图
 
 ### 小红书MCP
@@ -81,6 +81,7 @@ This file stores distilled learnings, important decisions, and crucial context t
 - **不验收不交付！宁可多花5分钟检查，不能交半成品！**
 
 ### 子代理任务规则
+- **多任务并行拆分！** 涉及多个独立子任务（如多张图、多个场景、多个视频）时，每个子任务单独spawn一个子代理并行处理，不要塞进一个子代理里撞token上限
 - **任务失败必须立即通知用户！不能静默失败！**
 - 定期检查子代理状态（每5-10分钟）
 - 发现卡住/失败立即告知并提供解决方案

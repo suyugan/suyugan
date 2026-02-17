@@ -189,6 +189,7 @@ python scripts/analyze_data.py -i D:\video-analysis\{博主名}\videos.json -o D
 **流程：**
 
 #### 步骤1：下载目标视频
+**⚠️ 缓存检查：如果 `D:\video-analysis\{博主名}\ref_video.mp4` 已存在，跳过下载！**
 ```powershell
 # 选取博主点赞Top3的代表性视频（或快速复刻模式下的单个目标视频）
 $body = '{"url":"抖音视频链接"}'
@@ -200,6 +201,7 @@ Invoke-WebRequest -Uri $videoUrl -OutFile "D:\video-analysis\{博主名}\ref_vid
 ```
 
 #### 步骤2：ffmpeg抽帧
+**⚠️ 缓存检查：如果 `D:\video-analysis\{博主名}\frames\` 目录已存在且有文件，跳过抽帧！**
 ```powershell
 # 创建帧目录
 New-Item -ItemType Directory -Force -Path "D:\video-analysis\{博主名}\frames"
@@ -212,6 +214,7 @@ ffmpeg -i ref_video.mp4 -vf "fps=1/10" "D:\video-analysis\{博主名}\frames\fra
 ```
 
 #### 步骤3：提取音频 + FunASR转录
+**⚠️ 缓存检查：如果 `ref_transcript.txt` 已存在，跳过转录！如果 `ref_audio.wav` 已存在，跳过音频提取！**
 ```powershell
 # 提取音频（16kHz单声道WAV，FunASR要求）
 ffmpeg -i ref_video.mp4 -vn -acodec pcm_s16le -ar 16000 -ac 1 "D:\video-analysis\{博主名}\ref_audio.wav"
@@ -1393,11 +1396,18 @@ http://bm.weiixxin.com/videos/{主题}.mp4
 - 阶段五中 TTS配音 和 即梦生图 **同时执行**
 - spawn多个子代理分别处理，不串行等待
 
-### 缓存复用
-- **博主数据缓存**：videos.json增量更新，不重复抓取
-- **画风模板缓存**：`style_template.json` 存博主视觉风格+内容类型，后续同博主视频直接复用
+### 缓存复用（同博主二次复刻全部跳过已有步骤）
+- **博主数据缓存**：`videos.json` 增量更新，不重复抓取
+- **参考视频缓存**：`ref_video.mp4` 已存在则跳过下载
+- **抽帧缓存**：`frames/` 目录有文件则跳过抽帧
+- **转录缓存**：`ref_transcript.txt` 已存在则跳过转录
+- **画风模板缓存**：`style_template.json` 存博主视觉风格+字幕参数+内容类型，后续同博主视频直接复用
+- **提示词优化缓存**：`prompt_optimization_log.json` 存在则直接用 `final_style_positive`，跳过阶段4.5
 - **Few-shot文案缓存**：`copywriting_examples.json` 存博主典型文案片段，同博主不重复提取
+- **BGM缓存**：`bgm_clean.wav` 已存在则跳过demucs分离
 - **TTS声音固定**：zh-CN-YunxiNeural，不需要每次选择
+
+**原则：同博主目录下已有的产出物一律复用，只生成本次视频特有的内容（文案、配图、合成）。**
 
 ### 减少token消耗
 - analyze_data.py 输出结构化数据 + 推荐选题Top5，AI只做观点总结

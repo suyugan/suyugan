@@ -50,7 +50,10 @@
       "note": "主会话读style_template.json的content_type后决定spawn哪个子代理3，不要写死"
     },
     "style_identification": {
-      "method": "具体特征拆解，禁止用单一标签归类",
+      "method": "根据content_type分路：配图类用6维度，动画类用12维度强制选项制+风格库匹配",
+      "animation_style_library": "references/animation_style_library.json",
+      "dimensions_image": 6,
+      "dimensions_animation": 12,
       "dimensions": [
         "线条：粗线条/细线条/无线条",
         "人物：写实/卡通/Q版/简笔/3D渲染",

@@ -38,121 +38,90 @@ description: 复刻抖音博主完整流程。从分析目标博主视频风格�
 **每个步骤完成后必须推送进度到用户频道！** 不只是阶段级别，而是每个关键子步骤都要推送，包括但不限于：下载完成、抽帧完成、转录完成、风格分析完成、文案写好、提示词生成、每批图片生成进度、TTS完成、BGM提取完成、视频合成中、字幕烧录、上传链接等。
 **TTS和生图可并行执行以提高效率。**
 
-## ⚠️ 子代理Spawn规则
+## ⚠️ 主会话指挥官模式（Commander Pattern）
 
-**所有子代理spawn时不设超时（不传runTimeoutSeconds），让子代理跑到完成为止！**
-**即梦生图必须用标准spawn模板，不允许子代理自己写API调用代码！**
+**核心原则：主会话掌控全局，子代理只做窄任务。**
 
-### 子代理拆分策略（防token爆满）
+主会话负责：
+- 读skill文件、做决策、控制phase切换
+- 检查每个phase的产出质量
+- 决定下一步做什么
 
-**禁止把全流程塞进一个子代理！必须按阶段拆分：**
+子代理负责：
+- 执行具体的、命令级别的窄任务
+- 不做决策、不读skill、不自由发挥
+- 出错立即报告，不尝试替代方案
+
+### 主会话执行流程
 
 ```
-子代理1：分析+文案（阶段1-4）
-  → 分析视频、提取风格、写文案、拆场景、生成提示词
-  → 产出：style_template.json, script.md, prompts.json
+主会话读 SKILL.md + config.json，开始逐phase推进：
 
-子代理2：TTS配音 + BGM提取（阶段5.2-5.3，与子代理3并行）
-  → 产出：narration.mp3, bgm_clean.wav, mixed_audio.m4a
+Phase 1-2: 数据获取 + 分析
+  主会话读 phase1-data.md + phase2-analysis.md
+  spawn子代理A: "用API下载视频{url}到{dir}，ffmpeg抽帧fps=1/5，提取音频，FunASR转录。完成后报告。"
+  → 主会话收到结果，自己做AI分析（逐帧分析、风格模板提取）
+  → 产出：style_template.json, analysis_report.md
 
-子代理3：即梦生图（阶段5.1，与子代理2并行）
-  → 只做生图这一件事，逐个场景串行
-  → 单账号单tab，不能并行提交
-  → 产出：images/scene_01~XX.webp
+Phase 3-4: 文案 + 场景拆分
+  主会话读 phase3-script.md + phase4-scenes.md
+  主会话自己写文案、拆场景、生成提示词（这些是决策，不spawn）
+  → 产出：script.md, prompts.json
 
-子代理4：合成+评估+交付（阶段6-6.8）
-  → 等子代理2和3都完成后启动
-  → 合成视频、烧字幕、质量评估、上传、交付链接
-  → 产出：final.mp4 + 评估报告
-  → ⚠️ 必须包含质量评估步骤！截帧检查字幕同步、图片大小、风格匹配
-  → ⚠️ 每完成一个主要步骤用message推送进度并标✅（合并音视频✅、字幕生成✅、烧录字幕✅、质量评估✅、上传✅）
+Phase 5: 素材生成（可并行）
+  主会话读 phase5-common.md + 对应的phase5a/5b/5c
+  
+  并行spawn两个窄任务子代理：
+  
+  子代理B（TTS+BGM）: 
+    "用TTS生成配音，文案如下：{完整文案}。
+     用ffmpeg提取BGM：{具体ffmpeg命令}。
+     混音：{具体ffmpeg命令，含volume参数}。
+     输出到{具体路径}。完成后报告文件路径和时长。"
+  
+  子代理C（生图/视频）:
+    "执行以下命令生成图片：
+     chcp 65001; python D:\video-analysis\scripts\jimeng_batch_fetch.py --input {path}\prompts.json --output {path}\images --ratio '16:9' --summary
+     完成后报告生成了多少张图、列出文件路径。
+     每5张图用message推送2-3张预览到{频道}。"
+  
+  → 主会话等两个都完成，检查产出（图片数量≥25、音频时长合理）
+
+Phase 6: 合成 + 质量评估 + 交付
+  主会话读 phase6-compose.md
+  spawn子代理D:
+    "用以下ffmpeg命令合成视频：{完整的ffmpeg命令序列}
+     1. 逐张生成片段：{具体命令}
+     2. concat拼接：{具体命令}
+     3. 合并音视频：{具体命令}
+     4. FunASR字幕对齐：{具体命令}
+     5. 烧录字幕：{具体ffmpeg命令}
+     6. 截3帧检查（开头/中间/结尾），用message发送截图到{频道}
+     7. 上传腾讯云：{具体上传命令}
+     完成后报告：本地路径、在线链接、视频时长、分辨率、文件大小。"
+  
+  → 主会话验收：检查链接可访问、截图看字幕/风格、确认无问题后交付
 ```
 
-**⚠️ 即梦生图子代理必须用 jimeng_batch_fetch.py 并发模式！不要用串行逐个生成！**
-```powershell
-chcp 65001
-python "D:\video-analysis\scripts\jimeng_batch_fetch.py" --input prompts.json --output images --ratio "16:9" --summary
-```
+### 子代理spawn规则
 
-**为什么这样拆：**
-- 每个子代理只干一段活，token不会爆
-- 子代理2（TTS）和子代理3（生图）可以并行，节省时间
-- 生图用单独子代理串行跑（即梦单账号限制，多个并行会冲突）
+1. **不设超时**（不传runTimeoutSeconds）
+2. **task里写具体命令**，不写"参考xxx文件"
+3. **task里不包含决策逻辑**（if/else判断由主会话做）
+4. **task里注明死规则**：出错立即用message报告，不尝试替代方案
+5. **task里注明消息推送方式**：`message({ action: "send", channel: "discord", target: "channel:{频道ID}", message: "进度" })`
+6. **所有输出用中文**
 
-**主会话协调逻辑：**
-1. spawn子代理1 → 等完成
-2. **读 style_template.json 的 content_type，决定子代理3的类型：**
-   - `content_type == "配图口播"` → spawn即梦生图子代理（读 phase5a-jimeng-image.md）
-   - `content_type == "视频类"` → spawn即梦视频子代理（读 phase5b-jimeng-video.md）
-   - `content_type == "动画类"` → spawn Remotion子代理（读 phase5c-remotion.md）
-3. 同时spawn子代理2（TTS+BGM）和子代理3（按类型） → 等两个都完成
-4. spawn子代理4 → 等完成 → 交付
+### 主会话检查点（每个phase完成后必检）
 
-### 即梦生图子代理spawn模板：
-```
-sessions_spawn({
-  label: "{主题}-视频制作",
-  runTimeoutSeconds: 3600,
-  task: `复刻「{博主名}」风格，制作主题「{主题}」的抖音视频。所有输出用中文。
+- [ ] 产出文件存在？内容合理？
+- [ ] 子代理有没有偏离指令自由发挥？
+- [ ] 质量达标再进下一phase，不达标就修正后重跑
 
-【死规则】遇到任何步骤失败或报错，立即停止并用message工具报告错误详情，不要尝试替代方案、不要自行修改流程、不要跳过步骤继续。
-
-【消息推送】进度推送方式：message({ action: "send", channel: "discord", target: "channel:1469278451193090163", message: "进度内容" })
-或 message({ action: "send", channel: "telegram", target: "7126927513", message: "进度内容" })
-
-【第一步：读配置文件！】
-先读 skills/douyin-clone/config.json，所有路径、参数、阈值从这里取，不要写死！
-即梦browser参数：profile和target从config.json读取。targetId每次用 browser tabs 动态获取，禁止写死！
-
-【核心原则：复刻=严格模仿，不是原创！】
-- 画风、色调、构图、文字排版 → 严格对标原视频，不要创新
-- 文案结构、节奏、口吻 → 模仿对标视频的套路，不是自由发挥
-- 风格识别用具体特征维度描述（线条/人物/上色/背景/质感/色调），禁止用"火柴人"等模糊标签
-- 风格识别后，生成1张测试图，AI自动与参考帧对比校验，≥2个维度不一致就调整重试（最多2次）
-- 提示词开头加："严格模仿参考视频的视觉风格，不要创新，不要改风格"
-
-然后按需读对应阶段的phase文件（不要读整个SKILL.md）。
-
-工作目录：D:\\video-analysis\\output\\{主题}\\
-博主数据目录：D:\\video-analysis\\{博主名}\\
-
-【前置检查】
-1. 检查抖音体字体是否安装：
-   if (!(Test-Path "C:\\Windows\\Fonts\\DouyinSansBold.ttf")) → 必须先下载安装！
-2. 检查 style_template.json 是否存在（博主数据目录）
-
-【即梦生图流程 - 严禁自己写JS/API代码！必须用脚本！】
-1. browser tabs (profile="openclaw", target="host") 找到 jimeng.jianying.com 的 targetId
-2. 对每个场景：
-   a) chcp 65001 && python D:\\video-analysis\\scripts\\jimeng_fetch_gen.py --action generate --prompt "prompt" --ratio "16:9" --json
-   b) browser evaluate执行返回的js
-   c) 等3秒
-   d) python D:\\video-analysis\\scripts\\jimeng_fetch_gen.py --action poll --submit-id "xxx" --json
-   e) 间隔5秒轮询直到status=done
-   f) curl下载图片到 images/scene_XX.webp
-3. 每5张图发2-3张预览给用户（用message工具发送图片，不阻塞生图）
-
-【字幕烧录 - 严格按phase6-compose.md执行！】
-- 方案二：原始文案去标点 + FunASR时间戳对齐（丢弃ASR文字）
-- ⚠️ ASR必须对合成后的视频音频做（含BGM+配音），不能对单独的TTS音频做！
-- ⚠️ 不能线性映射时间戳！必须用ASR实际识别的时间戳！
-- 字体/大小/位置参考对标视频，从style_template.json读取
-- 读 phases/phase6-compose.md 中的「字幕生成代码」完整执行
-
-【质量评估 - 必须步骤！不能跳过！】
-1. 截取3帧（开头/中间/结尾）检查：字幕是否显示、图片大小是否合适、风格是否匹配
-2. 播放5秒检查字幕与声音是否同步
-3. 检查视频时长、分辨率、文件大小是否合理
-4. 用message推送评估结果截图给用户
-5. 有问题必须修复后再交付，不能带病交付
-
-【视频完成后】
-1. 上传到腾讯云：paramiko sftp到106.55.158.137，路径 /home/ubuntu/www/videos/{主题}.mp4
-2. 发送高清链接：http://bm.weiixxin.com/videos/{主题}.mp4`
-})
-```
-
----
+### 前置检查（主会话在Phase 1前执行）
+1. 抖音体字体：`Test-Path "C:\Windows\Fonts\DouyinSansBold.ttf"`
+2. config.json存在：`Test-Path "skills/douyin-clone/config.json"`
+3. 即梦浏览器tab：`browser tabs (profile="openclaw", target="host")` 确认jimeng.jianying.com已打开
 
 ---
 
@@ -172,13 +141,13 @@ sessions_spawn({
 | 5c | `phases/phase5c-remotion.md` | Remotion动画生成（动画模式） |
 | 6-7 | `phases/phase6-compose.md` | 合成视频 + 上传 + 质量评估 + 发布 |
 
-### 子代理Spawn时的读取规则
-- **所有子代理第一步**：读 `config.json` 获取路径、参数、阈值
-- **子代理1（分析+文案）**：读 `phases/phase1-data.md` + `phases/phase2-analysis.md`
-- **子代理2（TTS+BGM）**：读 `phases/phase5-common.md`
-- **子代理3（生图/视频/动画）**：根据content_type读对应文件 + `phases/phase5-common.md`
+### Phase文件索引（主会话按需读取）
+- **Phase 1-2（数据+分析）**：`phases/phase1-data.md` + `phases/phase2-analysis.md`
+- **Phase 3-4（文案+场景）**：`phases/phase3-script.md` + `phases/phase4-scenes.md`
+- **Phase 5（素材生成）**：`phases/phase5-common.md` + 对应模式文件
   - 配图口播 → `phases/phase5a-jimeng-image.md`
   - 视频模式 → `phases/phase5b-jimeng-video.md`
   - 动画模式 → `phases/phase5c-remotion.md`
-- **子代理4（合成+交付）**：读 `phases/phase6-compose.md`
-- **不要读整个SKILL.md！只读对应的phase文件！**
+- **Phase 6（合成+交付）**：`phases/phase6-compose.md`
+
+**子代理不读phase文件！主会话读完后，把具体命令写进子代理的task里。**

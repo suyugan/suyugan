@@ -1,6 +1,13 @@
 <!-- 本文件是 douyin-clone 技能的子文件，完整流程见 ../SKILL.md -->
 <!-- phase5b: 即梦视频生成（content_type=视频模式时使用） -->
 
+## 全局上下文（必读）
+- **目标**：复刻目标博主风格，制作同风格原创视频
+- **风格**：读取 style_template.json（画风/配色/字幕/语气）
+- **质量红线**：风格必须匹配、视频质量达标
+- **上游输出**：阶段四的 `scenes.json`（场景+提示词）、`style_template.json`
+- **下游输入**：本阶段产出视频片段（`videos/scene_XX.mp4`）供阶段六合成使用
+
 ## 5.1b AI视频生成（即梦视频模式）
 
 **当 style_template.json 中 content_type 为「视频模式」时使用。**

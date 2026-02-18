@@ -68,6 +68,12 @@ description: 复刻抖音博主完整流程。从分析目标博主视频风格�
   → ⚠️ 每完成一个主要步骤用message推送进度并标✅（合并音视频✅、字幕生成✅、烧录字幕✅、质量评估✅、上传✅）
 ```
 
+**⚠️ 即梦生图子代理必须用 jimeng_batch_fetch.py 并发模式！不要用串行逐个生成！**
+```powershell
+chcp 65001
+python "D:\video-analysis\scripts\jimeng_batch_fetch.py" --input prompts.json --output images --ratio "16:9" --summary
+```
+
 **为什么这样拆：**
 - 每个子代理只干一段活，token不会爆
 - 子代理2（TTS）和子代理3（生图）可以并行，节省时间

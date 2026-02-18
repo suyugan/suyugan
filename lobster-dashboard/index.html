@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>龙虾集团·经营驾驶舱</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0B1120;color:#c8d6e5;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;min-width:1400px;padding:28px 40px 40px;}
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}
+.header-left{}
+.header-title{font-size:28px;font-weight:700;color:#fff;letter-spacing:2px;}
+.header-time{font-size:13px;color:#4a8b9b;margin-top:6px;}
+.header-btn{font-size:13px;color:#4a8b9b;border:1px solid #4a8b9b;border-radius:18px;padding:7px 18px;background:transparent;cursor:pointer;transition:all .2s;margin-top:6px;}
+.header-btn:hover{background:#4a8b9b;color:#fff;}
+
+/* KPI Cards */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px;}
+.kpi-card{background:rgba(13,25,48,0.85);border:1px solid #1a2a4a;border-radius:10px;padding:18px 20px;}
+.kpi-label{font-size:12px;color:#6b7fa3;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.kpi-label .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.kpi-label .dot-green{background:#00e676;}
+.kpi-label .dot-red{background:#ff4444;}
+.kpi-label .dot-blue{background:#4a8b9b;}
+.kpi-value{font-size:36px;font-weight:700;margin-bottom:8px;}
+.kpi-value.green{color:#00e676;}
+.kpi-value.red{color:#ff4444;}
+.kpi-value.white{color:#fff;}
+.kpi-sub{font-size:12px;color:#4a5f80;}
+.kpi-sub .red{color:#ff4444;}
+.kpi-sub .green{color:#00e676;}
+
+/* Main grid */
+.main-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px;}
+.panel{background:rgba(13,25,48,0.85);border:1px solid #1a2a4a;border-radius:10px;padding:20px;}
+.panel-title{font-size:14px;font-weight:600;color:#c8d6e5;margin-bottom:14px;}
+.panel-title span{color:#4a5f80;font-weight:400;font-size:12px;margin-left:8px;}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;color:#4a5f80;font-weight:500;padding:8px 6px;border-bottom:1px solid #1a2a4a;}
+td{padding:7px 6px;border-bottom:1px solid rgba(26,42,74,0.5);color:#8a9fc0;}
+td.green{color:#00e676;}
+td.red{color:#ff4444;}
+td.dim{color:#2a3a5a;}
+td.task-name{color:#8ab4cc;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* Status badge */
+.badge{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:500;}
+.badge-green{background:rgba(0,230,118,0.15);color:#00e676;}
+.badge-red{background:rgba(255,68,68,0.15);color:#ff4444;}
+
+/* Alert area */
+.alert-empty{color:#2a3a5a;font-size:13px;padding:30px 0;text-align:center;}
+
+/* Bottom grid */
+.bottom-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+
+/* File list */
+.file-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(26,42,74,0.5);font-size:12px;}
+.file-name{color:#8ab4cc;font-weight:500;}
+.file-path{color:#4a5f80;margin-left:8px;}
+.file-btn{font-size:11px;color:#4a8b9b;border:1px solid #4a8b9b;border-radius:4px;padding:3px 12px;background:transparent;cursor:pointer;transition:all .2s;}
+.file-btn:hover{background:#4a8b9b;color:#fff;}
+
+/* Step stats */
+.step-stats{font-size:11px;color:#6b7fa3;}
+.step-stats .s{color:#00e676;}
+.step-stats .r{color:#4a8b9b;}
+.step-stats .f{color:#ff4444;}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-title">龙虾集团 · 经营驾驶舱</div>
+    <div style="font-size:13px;color:#6b7fa3;margin-top:4px;letter-spacing:1px;">指挥部 · 情报部 · 策略部 · 工程部 · 内容部 · 质检部</div>
+    <div class="header-time">更新时间：2026/2/18 09:25:00</div>
+  </div>
+  <button class="header-btn">CEO / 管理层实时视图</button>
+</div>
+
+<!-- KPI Row -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">健康指数 <span class="dot dot-green"></span></div>
+    <div class="kpi-value green">100</div>
+    <div class="kpi-sub">任务失败 <span>0</span> / 步骤失败 <span>0</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">已成交提案 <span class="dot dot-blue"></span></div>
+    <div class="kpi-value white">0</div>
+    <div class="kpi-sub">Rejected: <span class="red">0</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">任务成功数 <span class="dot dot-green"></span></div>
+    <div class="kpi-value white">0</div>
+    <div class="kpi-sub">运行中 <span>0</span> / 失败 <span>0</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">步骤成功数 <span class="dot dot-blue"></span></div>
+    <div class="kpi-value white">0</div>
+    <div class="kpi-sub">排队 <span>0</span> / 运行 <span>0</span> / 失败 <span>0</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">风险告警数 <span class="dot dot-red"></span></div>
+    <div class="kpi-value red">0</div>
+    <div class="kpi-sub">最近异常（失败 + 运行阻塞）</div>
+  </div>
+</div>
+
+<!-- Middle Section -->
+<div class="main-grid">
+  <div class="panel">
+    <div class="panel-title">部门视图 <span>（6部门 · 初始化）</span></div>
+    <table>
+      <thead><tr><th>部门</th><th>总量</th><th>成功</th><th>运行</th><th>排队</th><th>失败</th><th>最近任务</th></tr></thead>
+      <tbody>
+        <tr><td>指挥部</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="task-name">— 待首次执行</td></tr>
+        <tr><td>情报部</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="task-name">— 待首次执行</td></tr>
+        <tr><td>策略部</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="task-name">— 待首次执行</td></tr>
+        <tr><td>工程部</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="task-name">— 待首次执行</td></tr>
+        <tr><td>内容部</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="task-name">— 待首次执行</td></tr>
+        <tr><td>质检部</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="task-name">— 待首次执行</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <div class="panel-title">风险告警 <span>（最近异常）</span></div>
+    <div class="alert-empty">暂无异常，系统稳定 ✅</div>
+  </div>
+</div>
+
+<!-- Bottom Section -->
+<div class="bottom-grid">
+  <div class="panel">
+    <div class="panel-title">任务明细 <span>（最近 25 条）</span></div>
+    <table>
+      <thead><tr><th>时间</th><th>任务</th><th>状态</th><th>步骤统计</th></tr></thead>
+      <tbody>
+        <tr><td colspan="4" style="text-align:center;color:#2a3a5a;padding:30px 0;">暂无任务记录</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <div class="panel-title">交付文件快速查看</div>
+    <div class="file-item"><div><span class="file-name">ORG.md</span><span class="file-path">projects/龙虾集团/ORG.md</span></div><button class="file-btn">查看</button></div>
+    <div class="file-item"><div><span class="file-name">SOP.md</span><span class="file-path">projects/龙虾集团/SOP.md</span></div><button class="file-btn">查看</button></div>
+    <div class="file-item"><div><span class="file-name">TASK_ROUTING.json</span><span class="file-path">projects/龙虾集团/TASK_ROUTING.json</span></div><button class="file-btn">查看</button></div>
+    <div class="file-item"><div><span class="file-name">GOALS.md</span><span class="file-path">projects/龙虾集团/GOALS.md</span></div><button class="file-btn">查看</button></div>
+    <div class="file-item"><div><span class="file-name">METRICS.md</span><span class="file-path">projects/龙虾集团/METRICS.md</span></div><button class="file-btn">查看</button></div>
+    <div class="file-item"><div><span class="file-name">CHANGELOG.md</span><span class="file-path">projects/龙虾集团/CHANGELOG.md</span></div><button class="file-btn">查看</button></div>
+  </div>
+</div>
+
+</body>
+</html>

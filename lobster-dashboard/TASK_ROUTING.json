@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "departments": {
+    "command": {
+      "name": "指挥部",
+      "triggers": ["任务拆解", "统筹", "调度", "优先级", "进度"],
+      "auto_assign": true,
+      "role": "coordinator"
+    },
+    "intelligence": {
+      "name": "情报部",
+      "triggers": ["搜索", "调研", "搜集", "核查", "竞品", "分析数据", "市场"],
+      "auto_assign": true,
+      "role": "researcher"
+    },
+    "strategy": {
+      "name": "策略部",
+      "triggers": ["方案", "策略", "规划", "分析", "决策", "建议", "对比"],
+      "auto_assign": true,
+      "role": "strategist"
+    },
+    "engineering": {
+      "name": "工程部",
+      "triggers": ["代码", "开发", "部署", "运维", "脚本", "API", "技术", "bug"],
+      "auto_assign": true,
+      "role": "engineer"
+    },
+    "content": {
+      "name": "内容部",
+      "triggers": ["文案", "内容", "品牌", "设计", "社媒", "推文", "小红书", "视频"],
+      "auto_assign": true,
+      "role": "creator"
+    },
+    "qa": {
+      "name": "质检部",
+      "triggers": ["审核", "校对", "优化", "润色", "验收", "纠错"],
+      "auto_assign": true,
+      "role": "reviewer"
+    }
+  },
+  "routing_rules": {
+    "default_flow": ["command", "intelligence", "strategy", "engineering|content", "qa", "command"],
+    "fast_track": ["command", "engineering|content", "qa", "command"],
+    "research_only": ["command", "intelligence", "qa", "command"]
+  }
+}

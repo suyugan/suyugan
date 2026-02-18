@@ -15,6 +15,8 @@ Topic Monitor transforms your assistant from reactive to proactive by continuous
 
 ## ⚡ Quick Start (New in v1.2.0!)
 
+⚠️ **Windows环境**：用 `python` 而非 `python3`，脚本已内置 `encoding=utf-8` 处理。
+
 **Just want to monitor one topic? One command:**
 
 ```bash

@@ -2,6 +2,15 @@
 
 ## 阶段六：合成视频
 
+**⚠️ 路径防错（Windows必须）：**
+- 所有输出目录、文件名一律用英文/拼音，禁止中文！（FFmpeg concat demuxer读UTF-8中文路径会乱码）
+- concat文件列表用相对路径，不用绝对路径
+- 如果发现路径含中文，先重命名再继续
+- 合成前用 Test-Path 验证所有输入文件存在
+
+**⚠️ ASR必须对合成后的视频音频做（含BGM+配音的混合音频），不能对单独的TTS音频做！否则时间戳跟实际视频不同步。**
+**⚠️ 禁止用线性映射估算时间戳！必须用ASR实际输出的逐字时间戳。**
+
 **本地脚本：**
 ```powershell
 python scripts/compose_video.py -i images -n narration.mp3 -b bgm.mp3 -o final.mp4

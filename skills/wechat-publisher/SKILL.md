@@ -93,6 +93,8 @@ cat ~/.claude/skills/wechat-publisher/.api_key
 
 ## Error Handling
 
+**⚠️ 中文编码**：发送含中文的JSON时，必须用 `json.dumps(data, ensure_ascii=False)`，否则中文会显示为\u转义码。Python的 `requests.post(json=...)` 默认ensure_ascii=True，需手动处理。
+
 Common errors and solutions:
 
 - **ACCOUNT_NOT_FOUND**: Ask user to verify wechatAppid or list accounts again

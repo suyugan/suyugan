@@ -182,3 +182,7 @@ exec(f'curl -o output.jpg "{image_url}"')
 - **模型**：默认 `high_aes_general_v41`（高质量通用模型）
 - **每次生成4张图**：generate_count=4
 - **图片分辨率**：优先取4096，依次降级到2048、1024
+- **Windows编码**：执行前先 `chcp 65001` 切换UTF-8编码，否则中文prompt可能乱码
+- **即梦CDN的URL签名包含图片尺寸**，修改URL中的尺寸参数会导致403。需要获取目标尺寸的原始URL
+- **⚠️ 火山引擎API密钥的Secret Key(SK)只在创建时弹窗显示一次，关掉就没了。创建后立即保存！**
+- **官方API用异步接口CVSync2AsyncSubmitTask，旧同步接口CVProcess已弃用**

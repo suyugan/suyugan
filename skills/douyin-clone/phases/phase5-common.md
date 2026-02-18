@@ -160,6 +160,13 @@ D:\video-analysis\{博主名}\
 ```
 
 ⚠️ Windows用soundfile加载音频，不要用torchaudio.load()
+```python
+# Windows上demucs的正确音频加载方式
+# pip install soundfile
+# demucs会自动检测并用soundfile替代torchaudio
+# 如果仍报错，设置环境变量：
+# $env:TORCHAUDIO_BACKEND="soundfile"
+```
 ⚠️ bgm_clean.wav已存在则跳过分离
 
 ---

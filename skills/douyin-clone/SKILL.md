@@ -89,6 +89,11 @@ sessions_spawn({
   runTimeoutSeconds: 3600,
   task: `复刻「{博主名}」风格，制作主题「{主题}」的抖音视频。所有输出用中文。
 
+【死规则】遇到任何步骤失败或报错，立即停止并用message工具报告错误详情，不要尝试替代方案、不要自行修改流程、不要跳过步骤继续。
+
+【消息推送】进度推送方式：message({ action: "send", channel: "discord", target: "channel:1469278451193090163", message: "进度内容" })
+或 message({ action: "send", channel: "telegram", target: "7126927513", message: "进度内容" })
+
 【第一步：读配置文件！】
 先读 skills/douyin-clone/config.json，所有路径、参数、阈值从这里取，不要写死！
 即梦browser参数：profile和target从config.json读取。targetId每次用 browser tabs 动态获取，禁止写死！

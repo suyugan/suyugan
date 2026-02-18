@@ -26,6 +26,8 @@ export FEISHU_VERIFICATION_TOKEN="xxx"
 
 ### 3. OpenClaw hooks 配置
 
+**⚠️ 已知问题：** 飞书v2.0事件格式中，verification token在header.token而非body.token，注意版本差异。
+
 在 `openclaw.json` 中添加:
 
 ```json

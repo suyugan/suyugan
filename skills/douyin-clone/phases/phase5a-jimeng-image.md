@@ -22,35 +22,36 @@
 
 ---
 
-### 方案A：并发模式（推荐，10张图3-4分钟）
+### 方案A：批量脚本+browser执行（推荐）
+
+**主会话spawn子代理时，task里这样写：**
 
 ```
-步骤1：获取即梦tab
+步骤1：调用 jimeng_batch_fetch.py 生成所有JS文件
+  chcp 65001
+  python D:\video-analysis\scripts\jimeng_batch_fetch.py --input "D:\video-analysis\output\{主题}\prompts.json" --output "D:\video-analysis\output\{主题}\images" --ratio 16:9 --summary
+  → 产出：images/000_generate.js, 000_poll.js, ..., summary.json
+
+步骤2：获取即梦tab
   browser({ action: "tabs", profile: "openclaw", target: "host" })
   → 找到 jimeng.jianying.com 的 targetId
 
-步骤2：初始化MD5签名函数
-  读取 jimeng_fetch_gen.py 中的 SIGN_JS_HELPER
+步骤3：初始化MD5签名函数
+  读取 D:\video-analysis\scripts\jimeng_fetch_gen.py 中的 SIGN_JS_HELPER 变量
   browser evaluate 执行，确保 window.__jimeng_md5 可用
 
-步骤3：读取 prompts.json，获取所有场景的prompt
+步骤4：逐个提交generate（读JS文件内容，browser evaluate执行）
+  每个间隔2-3秒，记录返回结果
 
-步骤4：构建并发提交JS
-  在browser evaluate中执行大JS：
-  a) 定义 __jimengGen(prompt, submitId)（调用generate API）
-  b) 定义 __jimengPoll(submitIds)（批量查询）
-  c) 连续提交所有generate请求（每个间隔2秒setTimeout错开）
-  d) 收集submit_id到 window.__batchSubmitIds
-  e) 自动轮询，每5秒批量查所有id状态
-  f) 结果存 window.__batchResults = { sceneNum: {status, url} }
-  g) 全部完成后 window.__batchDone = true
-
-步骤5：每10秒检查 window.__batchDone
+步骤5：逐个poll（读poll JS文件，browser evaluate执行）
+  间隔5秒轮询，超时120秒/张
+  结果中取 images[0] 的URL
 
 步骤6：下载图片 → images/scene_XX.webp
+  Invoke-WebRequest -Uri "图片URL" -OutFile "images/scene_XX.webp"
 ```
 
-**并发数**：3-5个同时，间隔2秒。超时120秒/张，整批300秒。
+**并发数**：3-5个同时提交generate，然后批量轮询。超时120秒/张。
 **断点续传**：跳过已存在的 scene_XX.webp。
 
 ### 方案B：串行模式（备用）
